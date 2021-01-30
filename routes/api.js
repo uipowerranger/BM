@@ -5,6 +5,7 @@ var categoryRouter = require("./category");
 var subCategoryRouter = require("./subcategory");
 var stateRouter = require("./state");
 var postcodeRouter = require("./postcode");
+var productsRouter = require("./products");
 
 var app = express();
 
@@ -14,5 +15,6 @@ app.use("/category/", categoryRouter);
 app.use("/subcategory/", subCategoryRouter);
 app.use("/state", stateRouter);
 app.use("/postcode", postcodeRouter);
+app.use("/products", productsRouter);
 
 module.exports = app;

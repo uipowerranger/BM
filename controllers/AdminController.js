@@ -5,8 +5,11 @@ const apiResponse = require("../helpers/apiResponse");
 const utility = require("../helpers/utility");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const auth = require("../middlewares/jwt");
 const mailer = require("../helpers/mailer");
 const { constants } = require("../helpers/constants");
+var mongoose = require("mongoose");
+mongoose.set("useFindAndModify", false);
 
 /**
  * User registration.
@@ -95,6 +98,8 @@ exports.register = [
             city: req.body.city,
             state: req.body.state,
             post_code: req.body.post_code,
+            assign_state: req.body.assign_state,
+            role: req.body.role,
           });
           // Html email body
           let html =
@@ -136,6 +141,161 @@ exports.register = [
               return apiResponse.ErrorResponse(res, err);
             });
         });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * User Update
+ */
+exports.AdminUpdate = [
+  auth,
+  body("first_name", "First Name must not be empty.")
+    .isLength({ min: 1 })
+    .trim(),
+  body("phone_number")
+    .isLength({ min: 1 })
+    .trim()
+    .escape()
+    .withMessage("Phone must be specified."),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      var admin = new AdminModel({
+        ...req.body,
+        _id: req.params.id,
+      });
+
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Invalid Error.",
+            "Invalid ID"
+          );
+        } else {
+          AdminModel.findById(req.params.id, function (err, foundAdmin) {
+            if (foundAdmin === null) {
+              return apiResponse.notFoundResponse(
+                res,
+                "Admin not exists with this id"
+              );
+            } else {
+              //update Category.
+              AdminModel.findByIdAndUpdate(
+                req.params.id,
+                admin,
+                {},
+                function (err) {
+                  if (err) {
+                    return apiResponse.ErrorResponse(res, err);
+                  } else {
+                    let admin_data = new AdminModel(admin);
+                    return apiResponse.successResponseWithData(
+                      res,
+                      "Admin update Success.",
+                      admin_data
+                    );
+                  }
+                }
+              );
+            }
+          });
+        }
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Admin Update Password
+ */
+
+exports.AdminUpdatePassword = [
+  auth,
+  body("old_password", "Old password must not be empty.")
+    .isLength({ min: 1 })
+    .trim(),
+  body("new_password")
+    .isLength({ min: 1 })
+    .trim()
+    .escape()
+    .withMessage("New password must be specified."),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Invalid Error.",
+            "Invalid ID"
+          );
+        } else {
+          AdminModel.findById(req.params.id, function (err, foundAdmin) {
+            if (foundAdmin === null) {
+              return apiResponse.notFoundResponse(
+                res,
+                "Admin not exists with this id"
+              );
+            } else {
+              //update admin.
+              bcrypt.compare(
+                req.body.old_password,
+                foundAdmin.password,
+                function (err, same) {
+                  if (same) {
+                    bcrypt.hash(
+                      req.body.new_password,
+                      10,
+                      function (err, hash) {
+                        AdminModel.findByIdAndUpdate(
+                          req.params.id,
+                          { password: hash },
+                          {},
+                          function (err) {
+                            if (err) {
+                              return apiResponse.ErrorResponse(res, err);
+                            } else {
+                              return apiResponse.successResponse(
+                                res,
+                                "Admin Password update Success."
+                              );
+                            }
+                          }
+                        );
+                      }
+                    );
+                  } else {
+                    return apiResponse.ErrorResponse(
+                      res,
+                      "Old Password is invalid."
+                    );
+                  }
+                }
+              );
+            }
+          });
+        }
       }
     } catch (err) {
       //throw error in json response with status 500.
@@ -217,6 +377,8 @@ exports.login = [
                             first_name: user.first_name,
                             last_name: user.last_name,
                             email_id: user.email_id,
+                            role: user.role,
+                            assign_state: user.assign_state,
                           };
                           //Prepare JWT token for authentication
                           const jwtPayload = userData;
@@ -321,6 +483,8 @@ exports.verifyConfirm = [
                   first_name: user.first_name,
                   last_name: user.last_name,
                   email_id: user.email_id,
+                  role: user.role,
+                  assign_state: user.assign_state,
                 };
                 //Prepare JWT token for authentication
                 const jwtPayload = userData;

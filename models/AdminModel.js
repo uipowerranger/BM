@@ -1,5 +1,7 @@
 var mongoose = require("mongoose");
 
+var Schema = mongoose.Schema;
+
 var AdminSchema = new mongoose.Schema(
   {
     first_name: { type: String, required: true },
@@ -18,6 +20,8 @@ var AdminSchema = new mongoose.Schema(
     city: { type: String, required: true },
     state: { type: String, required: true },
     post_code: { type: String, required: true },
+    role: { type: String, required: true },
+    assign_state: { type: Schema.ObjectId, ref: "states", required: true },
   },
   { timestamps: true }
 );
