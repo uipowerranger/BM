@@ -596,9 +596,9 @@ exports.getAdminById = [
             as: "map_state",
           },
         },
-        {
-          $unwind: "$map_state",
-        },
+        // {
+        //   $unwind: "$map_state",
+        // },
         {
           $match: {
             _id: mongoose.Types.ObjectId(req.params.id),

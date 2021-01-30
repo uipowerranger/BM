@@ -30,7 +30,7 @@ var ProductSchema = new Schema(
       required: true,
     },
     deal_details: { type: String, required: false, default: "" },
-    image: { type: String, required: false, default: "" },
+    image: { type: String, required: false },
     offer_details: { type: String, required: false, default: "" },
     has_deal: { type: Boolean, required: true, default: 0 },
     has_offer: { type: Boolean, required: true, default: 0 },
