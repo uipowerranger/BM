@@ -112,11 +112,13 @@ exports.StateStore = [
 exports.StateUpdate = [
   auth,
   body("state_name", "Name must not be empty.").isLength({ min: 1 }).trim(),
+  body("status", "Status must not be empty.").isLength({ min: 1 }).trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new StateModel({
         state_name: req.body.state_name,
+        status: req.body.status,
         _id: req.params.id,
       });
 

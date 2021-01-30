@@ -112,11 +112,13 @@ exports.CategoryStore = [
 exports.CategoryUpdate = [
   auth,
   body("category_name", "Name must not be empty.").isLength({ min: 1 }).trim(),
+  body("status", "Status must not be empty.").isLength({ min: 1 }).trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new CategoryModel({
         category_name: req.body.category_name,
+        status: req.body.status,
         _id: req.params.id,
       });
 

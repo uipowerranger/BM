@@ -86,60 +86,35 @@ exports.register = [
           // generate OTP for confirmation
           let otp = utility.randomNumber(6);
           // Create User object with escaped and trimmed data
+          const { password, confirmOTP, _id, ...rest } = req.body;
           var user = new AdminModel({
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
-            email_id: req.body.email_id,
             password: hash,
             confirmOTP: otp,
-            phone_number: req.body.phone_number,
-            designation: req.body.designation,
-            address: req.body.address,
-            city: req.body.city,
-            state: req.body.state,
-            post_code: req.body.post_code,
-            assign_state: req.body.assign_state,
-            role: req.body.role,
+            ...rest,
           });
-          // Html email body
-          let html =
-            "<p>Please Confirm your Account.</p><p>OTP: " + otp + "</p>";
-          // Send confirmation email
-          mailer
-            .send(
-              constants.confirmEmails.from,
-              req.body.email_id,
-              "Confirm Account",
-              html
-            )
-            .then(function () {
-              // Save user.
-              user.save(function (err) {
-                if (err) {
-                  return apiResponse.ErrorResponse(res, err);
-                }
-                let userData = {
-                  _id: user._id,
-                  first_name: user.first_name,
-                  last_name: user.last_name,
-                  email_id: user.email_id,
-                  phone_number: user.phone_number,
-                  designation: user.designation,
-                  address: user.address,
-                  city: user.city,
-                  state: user.state,
-                  post_code: user.post_code,
-                };
-                return apiResponse.successResponseWithData(
-                  res,
-                  "Registration Success.",
-                  userData
-                );
-              });
-            })
-            .catch((err) => {
+          // Save user.
+          user.save(function (err) {
+            if (err) {
               return apiResponse.ErrorResponse(res, err);
-            });
+            }
+            let userData = {
+              _id: user._id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email_id: user.email_id,
+              phone_number: user.phone_number,
+              designation: user.designation,
+              address: user.address,
+              city: user.city,
+              state: user.state,
+              post_code: user.post_code,
+            };
+            return apiResponse.successResponseWithData(
+              res,
+              "Registration Success.",
+              userData
+            );
+          });
         });
       }
     } catch (err) {
@@ -165,8 +140,9 @@ exports.AdminUpdate = [
   (req, res) => {
     try {
       const errors = validationResult(req);
+      const { _id, ...rest } = req.body;
       var admin = new AdminModel({
-        ...req.body,
+        ...rest,
         _id: req.params.id,
       });
 
@@ -359,7 +335,7 @@ exports.login = [
                         .send(
                           constants.confirmEmails.from,
                           req.body.email_id,
-                          "Confirm Account",
+                          "Login OTP ",
                           html
                         )
                         .then(function () {
@@ -566,7 +542,7 @@ exports.resendConfirmOtp = [
                 .send(
                   constants.confirmEmails.from,
                   req.body.email_id,
-                  "Confirm Account",
+                  "Login OTP",
                   html
                 )
                 .then(function () {
@@ -598,6 +574,125 @@ exports.resendConfirmOtp = [
         });
       }
     } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Get Admin By id
+ */
+
+exports.getAdminById = [
+  auth,
+  function (req, res) {
+    try {
+      AdminModel.aggregate([
+        {
+          $lookup: {
+            from: "states",
+            localField: "assign_state",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+        {
+          $project: {
+            __v: 0,
+          },
+        },
+      ]).then((admindata) => {
+        if (admindata) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            admindata
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            {}
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Get Admins
+ */
+exports.AdminsList = [
+  auth,
+  function (req, res) {
+    try {
+      AdminModel.aggregate([
+        {
+          $lookup: {
+            from: "states",
+            localField: "assign_state",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $project: {
+            __v: 0,
+            // _idNe: { $ne: ["$_id", mongoose.Types.ObjectId(req.user._id)] },
+          },
+        },
+      ]).then((admindata) => {
+        if (admindata) {
+          let newData = admindata.filter((f) => {
+            return String(f._id) !== String(req.user._id);
+          });
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            newData
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            {}
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Image uploads
+ */
+exports.fileUpload = [
+  auth,
+  async function (req, res) {
+    try {
+      const data = req.body.data;
+      let url = await utility.saveImage(data);
+      return apiResponse.successResponseWithData(res, "File uploaded", url);
+    } catch (err) {
+      //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
   },

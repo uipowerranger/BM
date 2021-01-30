@@ -67,6 +67,59 @@ exports.PostcodeList = [
   },
 ];
 
+exports.PostcodeListById = [
+  auth,
+  function (req, res) {
+    try {
+      PostcodeModel.aggregate([
+        {
+          $lookup: {
+            from: "states",
+            localField: "state",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $match: {
+            state: mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+        {
+          $project: {
+            post_code: 1,
+            state: 1,
+            createdAt: 1,
+            status: 1,
+            "map_state._id": 1,
+            "map_state.state_name": 1,
+          },
+        },
+      ]).then((postcodes) => {
+        if (postcodes.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            postcodes
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
 /**
  * Category store.
  *
@@ -80,14 +133,7 @@ exports.PostcodeStore = [
     .isLength({ min: 3 })
     .withMessage("Minimum 3 characters.")
     .trim()
-    .escape()
-    .custom((value, { req }) => {
-      return PostcodeModel.findOne({ post_code: value }).then((cat) => {
-        if (cat) {
-          return Promise.reject("Postcode already exist with this number.");
-        }
-      });
-    }),
+    .escape(),
   body("state", "State must not be empty")
     .isLength({ min: 1 })
     .trim()
@@ -161,6 +207,7 @@ exports.PostcodeUpdate = [
       var category = new PostcodeModel({
         post_code: req.body.post_code,
         state: req.body.state,
+        status: req.body.status,
         _id: req.params.id,
       });
 

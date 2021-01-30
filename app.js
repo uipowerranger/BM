@@ -41,6 +41,9 @@ app.use(express.static(path.join(__dirname, "public")));
 //To allow cross-origin requests
 app.use(cors());
 
+//add file upload directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 //Route Prefixes
 app.use("/", indexRouter);
 app.use("/api/", apiRouter);

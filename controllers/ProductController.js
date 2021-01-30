@@ -39,7 +39,57 @@ exports.ProductList = [
   auth,
   function (req, res) {
     try {
-      ProductModel.find({}).then((products) => {
+      ProductModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_details",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "sub_category_details",
+            foreignField: "_id",
+            as: "map_sub_category",
+          },
+        },
+        {
+          $unwind: "$map_sub_category",
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_postcode",
+          },
+        },
+        {
+          $unwind: "$map_postcode",
+        },
+        {
+          $project: {
+            __v: 0,
+          },
+        },
+      ]).then((products) => {
         if (products.length > 0) {
           return apiResponse.successResponseWithData(
             res,
@@ -76,15 +126,15 @@ exports.ProductStore = [
     .trim()
     .escape(),
   body("price", "Price must not be empty.")
-    .isLength({ min: 3 })
+    .isLength({ min: 1 })
     .withMessage("Minimum 3 characters.")
     .trim(),
   body("weight", "Weight must not be empty.")
-    .isLength({ min: 3 })
+    .isLength({ min: 1 })
     .withMessage("Minimum 3 characters.")
     .trim(),
   body("items_available", "Items vailable must not be empty.")
-    .isLength({ min: 3 })
+    .isLength({ min: 1 })
     .withMessage("Minimum 3 characters.")
     .trim(),
   body("category_details", "Category must not be empty")
@@ -120,7 +170,11 @@ exports.ProductStore = [
   (req, res) => {
     try {
       const errors = validationResult(req);
-      var product = new ProductModel(req.body);
+      const { _id, ...rest } = req.body;
+      var product = new ProductModel({
+        user: req.user,
+        ...rest,
+      });
       if (!errors.isEmpty()) {
         return apiResponse.validationErrorWithData(
           res,

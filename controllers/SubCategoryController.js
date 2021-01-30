@@ -67,6 +67,59 @@ exports.CategoryList = [
   },
 ];
 
+exports.CategoryListById = [
+  auth,
+  function (req, res) {
+    try {
+      CategoryModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $match: {
+            category: mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+        {
+          $project: {
+            sub_category_name: 1,
+            category: 1,
+            createdAt: 1,
+            status: 1,
+            "map_category._id": 1,
+            "map_category.category_name": 1,
+          },
+        },
+      ]).then((categories) => {
+        if (categories.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            categories
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
 /**
  * Category store.
  *
@@ -147,6 +200,7 @@ exports.CategoryUpdate = [
   body("sub_category_name", "Name must not be empty.")
     .isLength({ min: 1 })
     .trim(),
+  body("status", "Status must not be empty.").isLength({ min: 1 }).trim(),
   body("category", "Category must not be empty")
     .isLength({ min: 1 })
     .trim()
@@ -163,6 +217,7 @@ exports.CategoryUpdate = [
       var category = new CategoryModel({
         sub_category_name: req.body.sub_category_name,
         category: req.body.category,
+        status: req.body.status,
         _id: req.params.id,
       });
 
