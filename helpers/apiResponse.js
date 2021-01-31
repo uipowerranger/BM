@@ -33,11 +33,11 @@ exports.notFoundResponse = function (res, msg) {
 
 exports.validationErrorWithData = function (res, msg, data) {
   var resData = {
-    status: 400,
+    status: 201,
     message: msg,
     data: data,
   };
-  return res.status(400).json(resData);
+  return res.status(201).json(resData);
 };
 
 exports.unauthorizedResponse = function (res, msg) {
