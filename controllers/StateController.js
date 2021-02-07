@@ -21,9 +21,48 @@ exports.StateList = [
   auth,
   function (req, res) {
     try {
-      StateModel.find({}, "_id state_name status createdAt").then(
-        (categories) => {
-          if (categories.length > 0) {
+      StateModel.find(
+        { status: { $ne: 3 } },
+        "_id state_name status createdAt"
+      ).then((categories) => {
+        if (categories.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            categories
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * By Id
+ */
+
+exports.StateListById = [
+  auth,
+  function (req, res) {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Error.",
+          "Invalid ID"
+        );
+      } else {
+        StateModel.findById(req.params.id).then((categories) => {
+          if (categories) {
             return apiResponse.successResponseWithData(
               res,
               "Operation success",
@@ -36,8 +75,8 @@ exports.StateList = [
               []
             );
           }
-        }
-      );
+        });
+      }
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
@@ -198,13 +237,21 @@ exports.StateDelete = [
           );
         } else {
           //delete Category.
-          StateModel.findByIdAndRemove(req.params.id, function (err) {
-            if (err) {
-              return apiResponse.ErrorResponse(res, err);
-            } else {
-              return apiResponse.successResponse(res, "State delete Success.");
+          StateModel.findByIdAndUpdate(
+            req.params.id,
+            { status: 3 },
+            {},
+            function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              } else {
+                return apiResponse.successResponse(
+                  res,
+                  "State delete Success."
+                );
+              }
             }
-          });
+          );
         }
       });
     } catch (err) {

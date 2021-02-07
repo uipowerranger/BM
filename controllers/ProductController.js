@@ -85,8 +85,270 @@ exports.ProductList = [
           $unwind: "$map_postcode",
         },
         {
-          $project: {
-            __v: 0,
+          $match: {
+            state_details: {
+              $eq: mongoose.Types.ObjectId(req.user.assign_state),
+            },
+          },
+        },
+      ]).then((products) => {
+        if (products.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            products
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * All Products
+ */
+
+exports.AllProductList = [
+  auth,
+  function (req, res) {
+    try {
+      ProductModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_details",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "sub_category_details",
+            foreignField: "_id",
+            as: "map_sub_category",
+          },
+        },
+        {
+          $unwind: "$map_sub_category",
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_postcode",
+          },
+        },
+        {
+          $unwind: "$map_postcode",
+        },
+        {
+          $match: {
+            status: {
+              $ne: 3,
+            },
+          },
+        },
+      ]).then((products) => {
+        if (products.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            products
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Products By Category
+ */
+
+exports.ProductListByCategory = [
+  auth,
+  (req, res) => {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Id",
+          "Invalid Category Id"
+        );
+      }
+      ProductModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_details",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "sub_category_details",
+            foreignField: "_id",
+            as: "map_sub_category",
+          },
+        },
+        {
+          $unwind: "$map_sub_category",
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_postcode",
+          },
+        },
+        {
+          $unwind: "$map_postcode",
+        },
+        {
+          $match: {
+            category_details: {
+              $eq: mongoose.Types.ObjectId(req.params.id),
+            },
+          },
+        },
+      ]).then((products) => {
+        if (products.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            products
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Products by Sub category
+ */
+
+exports.ProductListBySubCategory = [
+  auth,
+  function (req, res) {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Id",
+          "Invalid Sub Category Id"
+        );
+      }
+      ProductModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_details",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "sub_category_details",
+            foreignField: "_id",
+            as: "map_sub_category",
+          },
+        },
+        {
+          $unwind: "$map_sub_category",
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_postcode",
+          },
+        },
+        {
+          $unwind: "$map_postcode",
+        },
+        {
+          $match: {
+            sub_category_details: {
+              $eq: mongoose.Types.ObjectId(req.params.id),
+            },
           },
         },
       ]).then((products) => {

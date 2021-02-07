@@ -6,9 +6,9 @@ var PostcodeScheme = new Schema(
   {
     post_code: { type: String, required: true },
     state: { type: Schema.ObjectId, ref: "states", required: true },
-    status: { type: Boolean, required: true, default: 1 },
+    status: { type: Number, required: true, default: 1 },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("postcode", PostcodeScheme);
+module.exports = mongoose.model("postcodes", PostcodeScheme);

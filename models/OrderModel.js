@@ -8,7 +8,7 @@ var OrderSchema = new mongoose.Schema(
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
     amount: { type: Number, required: true },
-    status: { type: Boolean, required: true, default: 1 },
+    status: { type: Number, required: true, default: 1 },
   },
   { timestamps: true }
 );

@@ -163,7 +163,7 @@ exports.UserUpdate = [
             if (foundAdmin === null) {
               return apiResponse.notFoundResponse(
                 res,
-                "Admin not exists with this id"
+                "User not exists with this id"
               );
             } else {
               //update Category.
@@ -178,7 +178,7 @@ exports.UserUpdate = [
                     let admin_data = new UserModel(admin);
                     return apiResponse.successResponseWithData(
                       res,
-                      "Admin update Success.",
+                      "User update Success.",
                       admin_data
                     );
                   }
@@ -230,7 +230,7 @@ exports.UserUpdatePassword = [
             if (foundAdmin === null) {
               return apiResponse.notFoundResponse(
                 res,
-                "Admin not exists with this id"
+                "User not exists with this id"
               );
             } else {
               //update admin.
@@ -253,7 +253,7 @@ exports.UserUpdatePassword = [
                             } else {
                               return apiResponse.successResponse(
                                 res,
-                                "Admin Password update Success."
+                                "User Password update Success."
                               );
                             }
                           }

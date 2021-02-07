@@ -45,6 +45,7 @@ exports.CategoryList = [
             "map_category.category_name": 1,
           },
         },
+        { $match: { status: { $ne: 3 } } },
       ]).then((categories) => {
         if (categories.length > 0) {
           return apiResponse.successResponseWithData(
@@ -220,7 +221,7 @@ exports.CategoryUpdate = [
         status: req.body.status,
         _id: req.params.id,
       });
-
+      console.log(category);
       if (!errors.isEmpty()) {
         return apiResponse.validationErrorWithData(
           res,
@@ -297,16 +298,21 @@ exports.CategoryDelete = [
           );
         } else {
           //delete Category.
-          CategoryModel.findByIdAndRemove(req.params.id, function (err) {
-            if (err) {
-              return apiResponse.ErrorResponse(res, err);
-            } else {
-              return apiResponse.successResponse(
-                res,
-                "Category delete Success."
-              );
+          CategoryModel.findByIdAndUpdate(
+            req.params.id,
+            { status: 3 },
+            {},
+            function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              } else {
+                return apiResponse.successResponse(
+                  res,
+                  "Category delete Success."
+                );
+              }
             }
-          });
+          );
         }
       });
     } catch (err) {

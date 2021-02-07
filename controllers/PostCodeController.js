@@ -45,6 +45,7 @@ exports.PostcodeList = [
             "map_state.state_name": 1,
           },
         },
+        { $match: { status: { $ne: 3 } } },
       ]).then((postcodes) => {
         if (postcodes.length > 0) {
           return apiResponse.successResponseWithData(
@@ -287,16 +288,21 @@ exports.PostcodeDelete = [
           );
         } else {
           //delete Category.
-          PostcodeModel.findByIdAndRemove(req.params.id, function (err) {
-            if (err) {
-              return apiResponse.ErrorResponse(res, err);
-            } else {
-              return apiResponse.successResponse(
-                res,
-                "Postcode delete Success."
-              );
+          PostcodeModel.findByIdAndUpdate(
+            req.params.id,
+            { status: 3 },
+            {},
+            function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              } else {
+                return apiResponse.successResponse(
+                  res,
+                  "Postcode delete Success."
+                );
+              }
             }
-          });
+          );
         }
       });
     } catch (err) {

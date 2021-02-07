@@ -9,6 +9,8 @@ mongoose.set("useFindAndModify", false);
 function CategoryData(data) {
   this.id = data._id;
   this.category_name = data.category_name;
+  this.state_details = data.state_details;
+  this.post_code_details = data.post_code_details;
   this.createdAt = data.createdAt;
 }
 
@@ -21,23 +23,45 @@ exports.CategoryList = [
   auth,
   function (req, res) {
     try {
-      CategoryModel.find({}, "_id category_name status createdAt").then(
-        (categories) => {
-          if (categories.length > 0) {
-            return apiResponse.successResponseWithData(
-              res,
-              "Operation success",
-              categories
-            );
-          } else {
-            return apiResponse.successResponseWithData(
-              res,
-              "Operation success",
-              []
-            );
-          }
+      CategoryModel.aggregate([
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_post_code",
+          },
+        },
+        {
+          $unwind: "$map_post_code",
+        },
+        { $match: { status: { $ne: 3 } } },
+      ]).then((categories) => {
+        if (categories.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            categories
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
         }
-      );
+      });
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
@@ -58,19 +82,16 @@ exports.CategoryStore = [
     .isLength({ min: 3 })
     .withMessage("Minimum 3 characters.")
     .trim()
-    .escape()
-    .custom((value, { req }) => {
-      return CategoryModel.findOne({ category_name: value }).then((cat) => {
-        if (cat) {
-          return Promise.reject("Category already exist with this name.");
-        }
-      });
-    }),
+    .escape(),
+  body("state_details", "State must not be empty.").trim(),
+  body("post_code_details", "Post code must not be empty.").trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new CategoryModel({
         category_name: req.body.category_name,
+        state_details: req.body.state_details,
+        post_code_details: req.body.post_code_details,
       });
 
       if (!errors.isEmpty()) {
@@ -113,11 +134,17 @@ exports.CategoryUpdate = [
   auth,
   body("category_name", "Name must not be empty.").isLength({ min: 1 }).trim(),
   body("status", "Status must not be empty.").isLength({ min: 1 }).trim(),
+  body("state_details", "State must not be empty.").isLength({ min: 1 }).trim(),
+  body("post_code_details", "Post code must not be empty.")
+    .isLength({ min: 1 })
+    .trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new CategoryModel({
         category_name: req.body.category_name,
+        state_details: req.body.state_details,
+        post_code_details: req.body.post_code_details,
         status: req.body.status,
         _id: req.params.id,
       });
@@ -198,16 +225,21 @@ exports.CategoryDelete = [
           );
         } else {
           //delete Category.
-          CategoryModel.findByIdAndRemove(req.params.id, function (err) {
-            if (err) {
-              return apiResponse.ErrorResponse(res, err);
-            } else {
-              return apiResponse.successResponse(
-                res,
-                "Category delete Success."
-              );
+          CategoryModel.findByIdAndUpdate(
+            req.params.id,
+            { status: 3 },
+            {},
+            function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              } else {
+                return apiResponse.successResponse(
+                  res,
+                  "Category delete Success."
+                );
+              }
             }
-          });
+          );
         }
       });
     } catch (err) {

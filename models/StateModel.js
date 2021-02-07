@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 var StateSchema = new Schema(
   {
     state_name: { type: String, required: true },
-    status: { type: Boolean, required: true, default: 1 },
+    status: { type: Number, required: true, default: 1 },
   },
   { timestamps: true }
 );
