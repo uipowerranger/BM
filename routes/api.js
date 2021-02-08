@@ -8,6 +8,7 @@ var postcodeRouter = require("./postcode");
 var productsRouter = require("./products");
 var userRouter = require("./user");
 var orderRouter = require("./order");
+var checkoutRouter = require("./checkout");
 
 var app = express();
 
@@ -20,5 +21,6 @@ app.use("/postcode", postcodeRouter);
 app.use("/products", productsRouter);
 app.use("/user", userRouter);
 app.use("/order", orderRouter);
+app.use("/checkout", checkoutRouter);
 
 module.exports = app;

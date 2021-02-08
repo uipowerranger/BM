@@ -1,4 +1,4 @@
-const OrderModel = require("../models/OrderModel");
+const CheckoutModel = require("../models/CheckoutModel");
 const ProductModel = require("../models/ProductModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
@@ -25,12 +25,10 @@ mongoose.set("useFindAndModify", false);
 exports.create = [
   auth,
   // Validate fields.
-  body("items").isArray().withMessage("Items must be Array of objects."),
-  body("items.*.item_id", "Item_id must be a string").exists().isString(),
-  body("items.*.quantity", "Quantity must be a number").exists().isInt(),
-  body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
-  body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
-  body("total_amount", "Total must be a Decimal").exists().isDecimal(),
+  body("item_id", "Item_id must be a string").exists().isString(),
+  body("quantity", "Quantity must be a number").exists().isInt(),
+  body("price", "Price must be a Decimal").exists().isDecimal(),
+  body("amount", "Amount must be a Decimal").exists().isDecimal(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
@@ -45,7 +43,7 @@ exports.create = [
         );
       } else {
         const { _id, ...rest } = req.body;
-        var order = new OrderModel({
+        var order = new CheckoutModel({
           user: req.user._id,
           ...rest,
         });
@@ -73,39 +71,37 @@ exports.create = [
 ];
 
 /**
- * Orders List
+ * Checkout List
  */
 
-exports.OrdersList = [
+exports.CheckoutList = [
   auth,
   function (req, res) {
     try {
-      OrderModel.aggregate([
+      CheckoutModel.aggregate([
         {
           $lookup: {
-            from: "users",
-            localField: "user",
+            from: "products",
+            localField: "item_id",
             foreignField: "_id",
-            as: "map_user",
+            as: "map_product",
           },
         },
-        // {
-        //   $lookup: {
-        //     from: "products",
-        //     localField: "items",
-        //     foreignField: "_id",
-        //     as: "map_products",
-        //   },
-        // },
+        {
+          $unwind: "$map_product",
+        },
+        {
+          $match: {
+            user: { $eq: mongoose.Types.ObjectId(req.user._id) },
+          },
+        },
         {
           $project: {
             __v: 0,
-            "map_user.password": 0,
-            "map_user.createdAt": 0,
-            "map_user.updatedAt": 0,
           },
         },
       ]).then((orders) => {
+        console.log(req.user._id);
         if (orders.length > 0) {
           return apiResponse.successResponseWithData(
             res,
