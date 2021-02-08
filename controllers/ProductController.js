@@ -36,7 +36,6 @@ function ProductData(data) {
  * @returns {Object}
  */
 exports.ProductList = [
-  auth,
   function (req, res) {
     try {
       ProductModel.aggregate([
@@ -118,7 +117,6 @@ exports.ProductList = [
  */
 
 exports.AllProductList = [
-  auth,
   function (req, res) {
     try {
       ProductModel.aggregate([
@@ -200,7 +198,6 @@ exports.AllProductList = [
  */
 
 exports.ProductListByCategory = [
-  auth,
   (req, res) => {
     try {
       if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -289,7 +286,6 @@ exports.ProductListByCategory = [
  */
 
 exports.ProductListBySubCategory = [
-  auth,
   function (req, res) {
     try {
       if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

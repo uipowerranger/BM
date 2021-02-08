@@ -20,7 +20,6 @@ function CategoryData(data) {
  * @returns {Object}
  */
 exports.CategoryList = [
-  auth,
   function (req, res) {
     try {
       CategoryModel.aggregate([

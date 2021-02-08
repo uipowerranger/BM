@@ -18,7 +18,6 @@ function StateData(data) {
  * @returns {Object}
  */
 exports.StateList = [
-  auth,
   function (req, res) {
     try {
       StateModel.find(
@@ -51,7 +50,6 @@ exports.StateList = [
  */
 
 exports.StateListById = [
-  auth,
   function (req, res) {
     try {
       if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

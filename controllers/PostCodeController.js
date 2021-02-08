@@ -20,7 +20,6 @@ function PostcodeData(data) {
  * @returns {Object}
  */
 exports.PostcodeList = [
-  auth,
   function (req, res) {
     try {
       PostcodeModel.aggregate([
@@ -69,7 +68,6 @@ exports.PostcodeList = [
 ];
 
 exports.PostcodeListById = [
-  auth,
   function (req, res) {
     try {
       PostcodeModel.aggregate([
