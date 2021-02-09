@@ -69,6 +69,38 @@ exports.CategoryList = [
 ];
 
 /**
+ * Category List by state.
+ *
+ * @returns {Object}
+ */
+exports.CategoryListByState = [
+  function (req, res) {
+    try {
+      CategoryModel.find({
+        state_details: req.params.state,
+      }).then((categories) => {
+        if (categories.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            categories
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
  * Category store.
  *
  * @param {string}      category_name

@@ -11,5 +11,6 @@ router.get("/", UserController.UsersList);
 router.put("/update-password/:id", UserController.UserUpdatePassword);
 router.post("/verify-otp", UserController.verifyConfirm);
 router.post("/resend-verify-otp", UserController.resendConfirmOtp);
+router.get("/homedata-by-state/:id", UserController.HomeData);
 
 module.exports = router;

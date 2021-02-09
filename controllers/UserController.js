@@ -1,4 +1,5 @@
 const UserModel = require("../models/UserModel");
+const StateModel = require("../models/StateModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -300,7 +301,6 @@ exports.login = [
     .trim()
     .escape()
     .withMessage("Password must be specified."),
-
   (req, res) => {
     try {
       const errors = validationResult(req);
@@ -652,6 +652,88 @@ exports.UsersList = [
             res,
             "Operation success",
             newData
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            {}
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Get Home Data
+ */
+exports.HomeData = [
+  function (req, res) {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Id",
+          "Invalid State Id"
+        );
+      }
+      StateModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "_id",
+            foreignField: "state_details",
+            as: "categories",
+          },
+        },
+        {
+          $unwind: {
+            path: "$categories",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "categories._id",
+            foreignField: "category",
+            as: "categories.sub_categories",
+          },
+        },
+        {
+          $unwind: {
+            path: "$categories.sub_categories",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "products",
+            localField: "categories.sub_categories._id",
+            foreignField: "sub_category_details",
+            as: "categories.sub_categories.products",
+          },
+        },
+        {
+          $project: {
+            __v: 0,
+          },
+        },
+      ]).then((data) => {
+        if (data) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            data
           );
         } else {
           return apiResponse.successResponseWithData(
