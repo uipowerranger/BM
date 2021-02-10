@@ -132,7 +132,14 @@ exports.PostcodeStore = [
     .isLength({ min: 3 })
     .withMessage("Minimum 3 characters.")
     .trim()
-    .escape(),
+    .escape()
+    .custom((value, { req }) => {
+      return PostcodeModel.findOne({ post_code: value }).then((cat) => {
+        if (cat) {
+          return Promise.reject("Postcode already exist.");
+        }
+      });
+    }),
   body("state", "State must not be empty")
     .isLength({ min: 1 })
     .trim()

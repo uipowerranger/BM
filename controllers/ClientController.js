@@ -1,4 +1,5 @@
 const PostcodeModel = require("../models/PostcodeModel");
+const CategoryModel = require("../models/CategoryModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -42,6 +43,34 @@ exports.validateStatePostcode = [
           } else {
             return apiResponse.successResponseWithData(res, "Failed", data);
           }
+        });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.getCategory = [
+  body("state_id", "State Id must be a string").exists().isString(),
+  body("postcode_id", "Postcode Id must be a string").exists().isString(),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        CategoryModel.find({
+          state_details: mongoose.Types.ObjectId(req.body.state_id),
+          post_code_details: mongoose.Types.ObjectId(req.body.postcode_id),
+        }).then((data) => {
+          return apiResponse.successResponseWithData(res, "success", data);
         });
       }
     } catch (err) {
