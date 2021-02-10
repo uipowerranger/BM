@@ -103,11 +103,19 @@ exports.StateStore = [
         }
       });
     }),
+  body("postcode_from", "Post Code from must not be empty.")
+    .isLength({ min: 4 })
+    .withMessage("Minimum 4 characters."),
+  body("postcode_to", "Post Code to must not be empty.")
+    .isLength({ min: 4 })
+    .withMessage("Minimum 4 characters."),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new StateModel({
         state_name: req.body.state_name,
+        postcode_from: req.body.postcode_from,
+        postcode_to: req.body.postcode_to,
       });
 
       if (!errors.isEmpty()) {
@@ -150,12 +158,20 @@ exports.StateUpdate = [
   auth,
   body("state_name", "Name must not be empty.").isLength({ min: 1 }).trim(),
   body("status", "Status must not be empty.").isLength({ min: 1 }).trim(),
+  body("postcode_from", "Postcode from must not be empty.")
+    .isLength({ min: 4 })
+    .trim(),
+  body("postcode_to", "Postcode to must not be empty.")
+    .isLength({ min: 4 })
+    .trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       var category = new StateModel({
         state_name: req.body.state_name,
         status: req.body.status,
+        postcode_from: req.body.postcode_from,
+        postcode_to: req.body.postcode_to,
         _id: req.params.id,
       });
 
