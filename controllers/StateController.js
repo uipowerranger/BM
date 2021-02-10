@@ -22,7 +22,7 @@ exports.StateList = [
     try {
       StateModel.find(
         { status: { $ne: 3 } },
-        "_id state_name status createdAt"
+        "_id state_name status postcode_from postcode_to createdAt"
       ).then((categories) => {
         if (categories.length > 0) {
           return apiResponse.successResponseWithData(
