@@ -9,6 +9,7 @@ var productsRouter = require("./products");
 var userRouter = require("./user");
 var orderRouter = require("./order");
 var checkoutRouter = require("./checkout");
+var clientRouter = require("./client");
 
 var app = express();
 
@@ -22,5 +23,6 @@ app.use("/products", productsRouter);
 app.use("/user", userRouter);
 app.use("/order", orderRouter);
 app.use("/checkout", checkoutRouter);
+app.use("/client", clientRouter);
 
 module.exports = app;
