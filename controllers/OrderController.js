@@ -31,6 +31,32 @@ exports.create = [
   body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
   body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
   body("total_amount", "Total must be a Decimal").exists().isDecimal(),
+  body("email_id", "Total must be a Decimal").exists().isString(),
+  body("phone_number", "Total must be a Decimal").exists().isString(),
+  body("mailing_address.address1", "Mailing address1 must be entered")
+    .exists()
+    .isString(),
+  body("mailing_address.city", "Mailing City must be entered")
+    .exists()
+    .isString(),
+  body("mailing_address.state", "Mailing State must be entered")
+    .exists()
+    .isString(),
+  body("mailing_address.postcode", "Mailing Postcode Code must be entered")
+    .exists()
+    .isString(),
+  body("shipping_address.address1", "Shipping address1 must be entered")
+    .exists()
+    .isString(),
+  body("shipping_address.city", "Shipping City must be entered")
+    .exists()
+    .isString(),
+  body("shipping_address.state", "Shipping State must be entered")
+    .exists()
+    .isString(),
+  body("shipping_address.postcode", "Shipping Postcode Code must be entered")
+    .exists()
+    .isString(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
@@ -97,6 +123,11 @@ exports.OrdersList = [
         //     as: "map_products",
         //   },
         // },
+        {
+          $match: {
+            user: { $eq: mongoose.Types.ObjectId(req.user._id) },
+          },
+        },
         {
           $project: {
             __v: 0,

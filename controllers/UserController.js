@@ -603,6 +603,10 @@ exports.getUserById = [
         {
           $project: {
             __v: 0,
+            password: 0,
+            createdAt: 0,
+            updatedAt: 0,
+            confirmOTP: 0,
           },
         },
       ]).then((admindata) => {

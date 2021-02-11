@@ -122,3 +122,28 @@ exports.CheckoutList = [
     }
   },
 ];
+
+/**
+ * Delete
+ */
+
+exports.delete = [
+  auth,
+  (req, res) => {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Id",
+          "Invalid Id"
+        );
+      } else {
+        CheckoutModel.findByIdAndRemove(req.params.id).then((resp) => {
+          return apiResponse.successResponse(res, "Deleted");
+        });
+      }
+    } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
