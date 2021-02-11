@@ -10,6 +10,7 @@ var userRouter = require("./user");
 var orderRouter = require("./order");
 var checkoutRouter = require("./checkout");
 var clientRouter = require("./client");
+var wishlistRouter = require("./wishlist");
 
 var app = express();
 
@@ -24,5 +25,6 @@ app.use("/user", userRouter);
 app.use("/order", orderRouter);
 app.use("/checkout", checkoutRouter);
 app.use("/client", clientRouter);
+app.use("/wishlist", wishlistRouter);
 
 module.exports = app;

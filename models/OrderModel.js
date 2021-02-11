@@ -7,6 +7,8 @@ var OrderSchema = new mongoose.Schema(
     items: [
       {
         item_id: { type: Schema.ObjectId, ref: "products", required: true },
+        item_name: { type: String, required: true },
+        item_image: { type: String, required: false },
         quantity: { type: Number, required: true, default: 1 },
         price: { type: Number, required: true, default: 1 },
         amount: { type: Number, required: true, default: 1 },

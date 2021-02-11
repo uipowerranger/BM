@@ -1,4 +1,4 @@
-const OrderModel = require("../models/OrderModel");
+const WishlistModel = require("../models/WishlistModel");
 const ProductModel = require("../models/ProductModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
@@ -25,40 +25,10 @@ mongoose.set("useFindAndModify", false);
 exports.create = [
   auth,
   // Validate fields.
-  body("items").isArray().withMessage("Items must be Array of objects."),
-  body("items.*.item_id", "Item_id must be a string").exists().isString(),
-  body("items.*.item_name", "Item name must be a string").exists().isString(),
-  body("items.*.item_image", "Item image must be a string").exists().isString(),
-  body("items.*.quantity", "Quantity must be a number").exists().isInt(),
-  body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
-  body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
-  body("total_amount", "Total must be a Decimal").exists().isDecimal(),
-  body("email_id", "Total must be a Decimal").exists().isString(),
-  body("phone_number", "Total must be a Decimal").exists().isString(),
-  body("mailing_address.address1", "Mailing address1 must be entered")
-    .exists()
-    .isString(),
-  body("mailing_address.city", "Mailing City must be entered")
-    .exists()
-    .isString(),
-  body("mailing_address.state", "Mailing State must be entered")
-    .exists()
-    .isString(),
-  body("mailing_address.postcode", "Mailing Postcode Code must be entered")
-    .exists()
-    .isString(),
-  body("shipping_address.address1", "Shipping address1 must be entered")
-    .exists()
-    .isString(),
-  body("shipping_address.city", "Shipping City must be entered")
-    .exists()
-    .isString(),
-  body("shipping_address.state", "Shipping State must be entered")
-    .exists()
-    .isString(),
-  body("shipping_address.postcode", "Shipping Postcode Code must be entered")
-    .exists()
-    .isString(),
+  body("item_id", "Item_id must be a string").exists().isString(),
+  body("quantity", "Quantity must be a number").exists().isInt(),
+  body("price", "Price must be a Decimal").exists().isDecimal(),
+  body("amount", "Amount must be a Decimal").exists().isDecimal(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
@@ -73,7 +43,7 @@ exports.create = [
         );
       } else {
         const { _id, ...rest } = req.body;
-        var order = new OrderModel({
+        var order = new WishlistModel({
           user: req.user._id,
           ...rest,
         });
@@ -101,30 +71,25 @@ exports.create = [
 ];
 
 /**
- * Orders List
+ * Checkout List
  */
 
-exports.OrdersList = [
+exports.CheckoutList = [
   auth,
   function (req, res) {
     try {
-      OrderModel.aggregate([
+      WishlistModel.aggregate([
         {
           $lookup: {
-            from: "users",
-            localField: "user",
+            from: "products",
+            localField: "item_id",
             foreignField: "_id",
-            as: "map_user",
+            as: "map_product",
           },
         },
-        // {
-        //   $lookup: {
-        //     from: "products",
-        //     localField: "items",
-        //     foreignField: "_id",
-        //     as: "map_products",
-        //   },
-        // },
+        {
+          $unwind: "$map_product",
+        },
         {
           $match: {
             user: { $eq: mongoose.Types.ObjectId(req.user._id) },
@@ -133,12 +98,10 @@ exports.OrdersList = [
         {
           $project: {
             __v: 0,
-            "map_user.password": 0,
-            "map_user.createdAt": 0,
-            "map_user.updatedAt": 0,
           },
         },
       ]).then((orders) => {
+        console.log(req.user._id);
         if (orders.length > 0) {
           return apiResponse.successResponseWithData(
             res,
@@ -155,6 +118,31 @@ exports.OrdersList = [
       });
     } catch (err) {
       //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
+ * Delete
+ */
+
+exports.delete = [
+  auth,
+  (req, res) => {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Id",
+          "Invalid Id"
+        );
+      } else {
+        WishlistModel.findByIdAndRemove(req.params.id).then((resp) => {
+          return apiResponse.successResponse(res, "Deleted");
+        });
+      }
+    } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
   },
