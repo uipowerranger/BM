@@ -78,20 +78,47 @@ exports.create = [
           ...rest,
         });
         // Save order.
-        order.save(function (err) {
-          if (err) {
-            return apiResponse.ErrorResponse(res, err);
-          }
-          let orderData = {
-            _id: order._id,
-            createdAt: order.createdAt,
-          };
-          return apiResponse.successResponseWithData(
-            res,
-            "Order Success.",
-            orderData
+        let html = "<p>Your order details:</p><p></p>";
+        html =
+          html +
+          "<table width='600px' border='1' cellspacing='0'><thead><tr><th>Item</th><th>Quantity</th><th>Price</th></tr></thead><tbody>";
+        let orders = req.body.items.map((it) => {
+          return (
+            "<tr><td>" +
+            it.item_name +
+            "</td><td style='align-items:center'>" +
+            it.quantity +
+            "</td><td style='align-items:center'>" +
+            it.price +
+            "</td></tr>"
           );
         });
+        html = html + orders.join("");
+        html = html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
+        // Send confirmation email
+        mailer
+          .send(
+            constants.confirmEmails.from,
+            req.user.email_id,
+            "Your Order on Birlamart",
+            html
+          )
+          .then(function () {
+            order.save(function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              }
+              let orderData = {
+                _id: order._id,
+                createdAt: order.createdAt,
+              };
+              return apiResponse.successResponseWithData(
+                res,
+                "Order Success.",
+                orderData
+              );
+            });
+          });
       }
     } catch (err) {
       //throw error in json response with status 500.
