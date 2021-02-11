@@ -1,5 +1,6 @@
 const PostcodeModel = require("../models/PostcodeModel");
 const CategoryModel = require("../models/CategoryModel");
+const SubCategoryModel = require("../models/SubCategoryModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -72,6 +73,48 @@ exports.getCategory = [
         }).then((data) => {
           return apiResponse.successResponseWithData(res, "success", data);
         });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.subcategoryProducts = [
+  body("category_id", "Category Id must be a string").exists().isString(),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        SubCategoryModel.aggregate([
+          {
+            $lookup: {
+              from: "products",
+              localField: "_id",
+              foreignField: "sub_category_details",
+              as: "map_products",
+            },
+          },
+          {
+            $match: {
+              category: { $eq: mongoose.Types.ObjectId(req.body.category_id) },
+            },
+          },
+        ])
+          .then((data) => {
+            return apiResponse.successResponseWithData(res, "success", data);
+          })
+          .catch((err) => {
+            return apiResponse.ErrorResponse(res, err);
+          });
       }
     } catch (err) {
       //throw error in json response with status 500.
