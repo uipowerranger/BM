@@ -83,13 +83,11 @@ exports.ProductList = [
         {
           $unwind: "$map_postcode",
         },
-        {
-          $match: {
-            state_details: {
-              $eq: mongoose.Types.ObjectId(req.user.assign_state),
-            },
-          },
-        },
+        // {
+        //   $match: {
+        //     state_details: mongoose.Types.ObjectId(req.user.assign_state),
+        //   },
+        // },
       ]).then((products) => {
         if (products.length > 0) {
           return apiResponse.successResponseWithData(

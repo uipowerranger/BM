@@ -186,3 +186,58 @@ exports.OrdersList = [
     }
   },
 ];
+
+exports.OrdersListAll = [
+  function (req, res) {
+    try {
+      OrderModel.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "map_user",
+          },
+        },
+        // {
+        //   $lookup: {
+        //     from: "products",
+        //     localField: "items",
+        //     foreignField: "_id",
+        //     as: "map_products",
+        //   },
+        // },
+        // {
+        //   $match: {
+        //     user: { $eq: mongoose.Types.ObjectId(req.user._id) },
+        //   },
+        // },
+        {
+          $project: {
+            __v: 0,
+            "map_user.password": 0,
+            "map_user.createdAt": 0,
+            "map_user.updatedAt": 0,
+          },
+        },
+      ]).then((orders) => {
+        if (orders.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            orders
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
