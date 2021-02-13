@@ -330,46 +330,49 @@ exports.login = [
                         otp +
                         "</p>";
                       // Send confirmation email
-                      // mailer
-                      //   .send(
-                      //     constants.confirmEmails.from,
-                      //     req.body.email_id,
-                      //     "Login OTP ",
-                      //     html
-                      //   )
-                      //   .then(function () {
-                      UserModel.findOneAndUpdate(
-                        { email_id: req.body.email_id },
-                        {
-                          isConfirmed: 1,
-                          confirmOTP: otp,
-                        }
-                      );
-                      // .catch((err) => {
-                      //   return apiResponse.ErrorResponse(res, err);
-                      // });
-                      let userData = {
-                        _id: user._id,
-                        first_name: user.first_name,
-                        last_name: user.last_name,
-                        email_id: user.email_id,
-                        role: user.role,
-                        assign_state: user.assign_state,
-                      };
-                      //Prepare JWT token for authentication
-                      const jwtPayload = userData;
-                      const jwtData = {
-                        expiresIn: process.env.JWT_TIMEOUT_DURATION,
-                      };
-                      const secret = process.env.JWT_SECRET;
-                      //Generated JWT token with Payload and secret.
-                      userData.token = jwt.sign(jwtPayload, secret, jwtData);
-                      return apiResponse.successResponseWithData(
-                        res,
-                        "Login Success.",
-                        userData
-                      );
-                      // });
+                      mailer
+                        .send(
+                          constants.confirmEmails.from,
+                          req.body.email_id,
+                          "Login OTP ",
+                          html
+                        )
+                        .then(function () {
+                          UserModel.findOneAndUpdate(
+                            { email_id: req.body.email_id },
+                            {
+                              isConfirmed: 1,
+                              confirmOTP: otp,
+                            }
+                          ).catch((err) => {
+                            return apiResponse.ErrorResponse(res, err);
+                          });
+                          let userData = {
+                            _id: user._id,
+                            first_name: user.first_name,
+                            last_name: user.last_name,
+                            email_id: user.email_id,
+                            role: user.role,
+                            assign_state: user.assign_state,
+                          };
+                          //Prepare JWT token for authentication
+                          const jwtPayload = userData;
+                          const jwtData = {
+                            expiresIn: process.env.JWT_TIMEOUT_DURATION,
+                          };
+                          const secret = process.env.JWT_SECRET;
+                          //Generated JWT token with Payload and secret.
+                          userData.token = jwt.sign(
+                            jwtPayload,
+                            secret,
+                            jwtData
+                          );
+                          return apiResponse.successResponseWithData(
+                            res,
+                            "Login Success.",
+                            userData
+                          );
+                        });
                     } else {
                       return apiResponse.unauthorizedResponse(
                         res,
