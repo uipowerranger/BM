@@ -177,10 +177,27 @@ exports.AdminUpdate = [
                     return apiResponse.ErrorResponse(res, err);
                   } else {
                     let admin_data = new AdminModel(admin);
+                    let userData = {
+                      _id: admin_data._id,
+                      first_name: admin_data.first_name,
+                      last_name: admin_data.last_name,
+                      email_id: admin_data.email_id,
+                      role: admin_data.role,
+                      assign_state: admin_data.assign_state,
+                      image: admin_data.image,
+                    };
+                    //Prepare JWT token for authentication
+                    const jwtPayload = userData;
+                    const jwtData = {
+                      expiresIn: process.env.JWT_TIMEOUT_DURATION,
+                    };
+                    const secret = process.env.JWT_SECRET;
+                    //Generated JWT token with Payload and secret.
+                    userData.token = jwt.sign(jwtPayload, secret, jwtData);
                     return apiResponse.successResponseWithData(
                       res,
-                      "Admin update Success.",
-                      admin_data
+                      "Login Success.",
+                      userData
                     );
                   }
                 }
@@ -355,6 +372,7 @@ exports.login = [
                             email_id: user.email_id,
                             role: user.role,
                             assign_state: user.assign_state,
+                            image: user.image,
                           };
                           //Prepare JWT token for authentication
                           const jwtPayload = userData;
@@ -461,6 +479,7 @@ exports.verifyConfirm = [
                   email_id: user.email_id,
                   role: user.role,
                   assign_state: user.assign_state,
+                  image: user.image,
                 };
                 //Prepare JWT token for authentication
                 const jwtPayload = userData;
@@ -648,9 +667,6 @@ exports.AdminsList = [
           },
         },
         {
-          $unwind: "$map_state",
-        },
-        {
           $project: {
             __v: 0,
             // _idNe: { $ne: ["$_id", mongoose.Types.ObjectId(req.user._id)] },
@@ -661,11 +677,19 @@ exports.AdminsList = [
           let newData = admindata.filter((f) => {
             return String(f._id) !== String(req.user._id);
           });
-          return apiResponse.successResponseWithData(
-            res,
-            "Operation success",
-            newData
-          );
+          if (req.user.role === "admin") {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              newData
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
         } else {
           return apiResponse.successResponseWithData(
             res,

@@ -21,7 +21,7 @@ var AdminSchema = new mongoose.Schema(
     state: { type: String, required: true },
     post_code: { type: String, required: true },
     role: { type: String, required: true },
-    assign_state: { type: Schema.ObjectId, ref: "states", required: true },
+    assign_state: { type: Schema.ObjectId, ref: "states", required: false },
   },
   { timestamps: true }
 );
