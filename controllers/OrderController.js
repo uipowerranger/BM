@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const auth = require("../middlewares/jwt");
 const mailer = require("../helpers/mailer");
+const eway = require("../helpers/eway");
 const { constants } = require("../helpers/constants");
 var mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
@@ -95,30 +96,50 @@ exports.create = [
         });
         html = html + orders.join("");
         html = html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
-        // Send confirmation email
-        mailer
-          .send(
-            constants.confirmEmails.from,
-            req.user.email_id,
-            "Your Order on Birlamart",
-            html
-          )
-          .then(function () {
-            order.save(function (err) {
-              if (err) {
-                return apiResponse.ErrorResponse(res, err);
-              }
-              let orderData = {
-                _id: order._id,
-                createdAt: order.createdAt,
-              };
+
+        eway
+          .payment(1000)
+          .then(function (response) {
+            if (response.getErrors().length == 0) {
+              var redirectURL = response.get("SharedPaymentUrl");
               return apiResponse.successResponseWithData(
                 res,
-                "Order Success.",
-                orderData
+                "Payment Url.",
+                redirectURL
               );
+            } else {
+              return apiResponse.ErrorResponse(res, response.getErrors());
+            }
+          })
+          .catch(function (reason) {
+            reason.getErrors().forEach(function (error) {
+              console.log("Response Messages: " + (error, "en"));
             });
           });
+        // Send confirmation email
+        // mailer
+        //   .send(
+        //     constants.confirmEmails.from,
+        //     req.user.email_id,
+        //     "Your Order on Birlamart",
+        //     html
+        //   )
+        //   .then(function () {
+        //     order.save(function (err) {
+        //       if (err) {
+        //         return apiResponse.ErrorResponse(res, err);
+        //       }
+        //       let orderData = {
+        //         _id: order._id,
+        //         createdAt: order.createdAt,
+        //       };
+        //       return apiResponse.successResponseWithData(
+        //         res,
+        //         "Order Success.",
+        //         orderData
+        //       );
+        //     });
+        //   });
       }
     } catch (err) {
       //throw error in json response with status 500.

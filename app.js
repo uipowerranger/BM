@@ -6,6 +6,7 @@ var logger = require("morgan");
 require("dotenv").config();
 var indexRouter = require("./routes/index");
 var apiRouter = require("./routes/api");
+var paymentRouter = require("./routes/payment");
 var apiResponse = require("./helpers/apiResponse");
 var cors = require("cors");
 
@@ -77,6 +78,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //Route Prefixes
 app.use("/", indexRouter);
 app.use("/api/", apiRouter);
+app.use("/payment", paymentRouter);
 
 // throw 404 if URL not found
 app.all("*", function (req, res) {
