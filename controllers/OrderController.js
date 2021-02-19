@@ -99,7 +99,6 @@ exports.create = [
         eway
           .payment(1000)
           .then(function (response) {
-            console.log(response, "response");
             if (response.getErrors().length == 0) {
               var redirectURL = response.get("SharedPaymentUrl");
               return apiResponse.successResponseWithData(
