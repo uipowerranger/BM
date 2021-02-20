@@ -329,3 +329,58 @@ exports.OrdersByDate = [
     }
   },
 ];
+
+exports.OrderUpdateStatus = [
+  auth,
+  body("order_id", "Order id is required").exists(),
+  body("payment", "payment status is required")
+    .notEmpty()
+    .isIn([0, 1])
+    .withMessage("Values should be either 0 or 1"),
+  body("order_completed", "order_completed status is required")
+    .notEmpty()
+    .isIn([0, 1])
+    .withMessage("Values should be either 0 or 1"),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        if (!mongoose.Types.ObjectId.isValid(req.body.order_id)) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Invalid Error.",
+            "Invalid ID"
+          );
+        } else {
+          const { order_id, ...rest } = req.body;
+          var order = new OrderModel({
+            ...rest,
+            _id: order_id,
+          });
+          OrderModel.findByIdAndUpdate(
+            req.body.order_id,
+            order,
+            {},
+            function (err) {
+              if (err) {
+                return apiResponse.ErrorResponse(res, err);
+              } else {
+                return apiResponse.successResponse(res, "Order Updated");
+              }
+            }
+          );
+        }
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];

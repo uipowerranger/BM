@@ -55,7 +55,6 @@ exports.validateStatePostcode = [
 
 exports.getCategory = [
   body("state_id", "State Id must be a string").exists().isString(),
-  body("postcode_id", "Postcode Id must be a string").exists().isString(),
   (req, res) => {
     try {
       const errors = validationResult(req);
@@ -69,7 +68,6 @@ exports.getCategory = [
       } else {
         CategoryModel.find({
           state_details: mongoose.Types.ObjectId(req.body.state_id),
-          post_code_details: mongoose.Types.ObjectId(req.body.postcode_id),
         }).then((data) => {
           return apiResponse.successResponseWithData(res, "success", data);
         });

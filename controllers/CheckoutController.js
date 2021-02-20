@@ -146,3 +146,35 @@ exports.delete = [
     }
   },
 ];
+
+exports.deleteByUser = [
+  auth,
+  body("user_id", "User id is required").exists(),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        if (!mongoose.Types.ObjectId.isValid(req.body.user_id)) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Invalid Id",
+            "Invalid Id"
+          );
+        } else {
+          CheckoutModel.deleteMany({ user: req.body.user_id }).then((resp) => {
+            return apiResponse.successResponse(res, "Deleted");
+          });
+        }
+      }
+    } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];

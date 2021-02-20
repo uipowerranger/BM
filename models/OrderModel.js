@@ -34,6 +34,8 @@ var OrderSchema = new mongoose.Schema(
       state: { type: String, required: true, default: "" },
       postcode: { type: String, required: true, default: "" },
     },
+    payment: { type: Boolean, required: false, default: 0 },
+    order_completed: { type: Boolean, required: false, default: 0 },
   },
   { timestamps: true }
 );
