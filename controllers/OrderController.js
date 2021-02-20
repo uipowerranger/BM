@@ -33,8 +33,8 @@ exports.create = [
   body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
   body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
   body("total_amount", "Total must be a Decimal").exists().isDecimal(),
-  body("email_id", "Total must be a Decimal").exists().isString(),
-  body("phone_number", "Total must be a Decimal").exists().isString(),
+  body("email_id", "Email is required").exists().isString(),
+  body("phone_number", "Phone number is required").exists().isString(),
   body("mailing_address.address1", "Mailing address1 must be entered")
     .exists()
     .isString(),
@@ -101,11 +101,21 @@ exports.create = [
           .then(function (response) {
             if (response.getErrors().length == 0) {
               var redirectURL = response.get("SharedPaymentUrl");
-              return apiResponse.successResponseWithData(
-                res,
-                "Payment Url.",
-                redirectURL
-              );
+              order.save(function (err) {
+                if (err) {
+                  return apiResponse.ErrorResponse(res, err);
+                }
+                let orderData = {
+                  _id: order._id,
+                  createdAt: order.createdAt,
+                  redirectURL: redirectURL,
+                };
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Order Success.",
+                  orderData
+                );
+              });
             } else {
               return apiResponse.ErrorResponse(res, response.getErrors());
             }
@@ -256,6 +266,63 @@ exports.OrdersListAll = [
           );
         }
       });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.OrdersByDate = [
+  auth,
+  body("from_date", "From date is required").exists(),
+  body("to_date", "To date is required").exists(),
+  function (req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        OrderModel.aggregate([
+          {
+            $lookup: {
+              from: "users",
+              localField: "user",
+              foreignField: "_id",
+              as: "map_user",
+            },
+          },
+          {
+            $match: {
+              order_date: {
+                $gte: new Date(
+                  new Date(req.body.from_date).setHours(00, 00, 00)
+                ),
+                $lt: new Date(new Date(req.body.to_date).setHours(23, 59, 59)),
+              },
+            },
+          },
+        ]).then((orders) => {
+          if (orders.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              orders
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        });
+      }
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
