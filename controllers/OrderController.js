@@ -384,3 +384,52 @@ exports.OrderUpdateStatus = [
     }
   },
 ];
+
+exports.VerifyToken = [
+  auth,
+  body("AccessCode", "AccessCode is required")
+    .exists()
+    .isLength({ min: 10 })
+    .withMessage("AccessCode cannot be empty"),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        eway
+          .getAccessCode(req.body.AccessCode)
+          .then(function (response) {
+            if (response.get("Transactions[0].TransactionStatus")) {
+              return apiResponse.successResponseWithData(
+                res,
+                "Payment Success",
+                {
+                  TransactionID: response.get("Transactions[0].TransactionID"),
+                  TransactionStatus: response.get(
+                    "Transactions[0].TransactionStatus"
+                  ),
+                }
+              );
+            } else {
+              var errorCodes = response
+                .get("Transactions[0].ResponseMessage")
+                .split(", ");
+              return apiResponse.ErrorResponse(res, errorCodes);
+            }
+          })
+          .catch(function (reason) {
+            return apiResponse.ErrorResponse(res, "Payment Failed");
+          });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];

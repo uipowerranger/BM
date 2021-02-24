@@ -8,5 +8,6 @@ router.get("/", OrderController.OrdersList);
 router.get("/get-admin", OrderController.OrdersListAll);
 router.post("/filter-by-date", OrderController.OrdersByDate);
 router.post("/update-status", OrderController.OrderUpdateStatus);
+router.post("/verify-token", OrderController.VerifyToken);
 
 module.exports = router;

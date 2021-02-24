@@ -7,35 +7,8 @@ var key =
 
 var client = rapid.createClient(key, password, endpoint);
 
-exports.getAccessCode = (req, res) => {
-  client
-    .queryTransaction(req.query.AccessCode)
-    .then(function (response) {
-      if (response.get("Transactions[0].TransactionStatus")) {
-        res.json({
-          status: 200,
-          TransactionID: response.get("Transactions[0].TransactionID"),
-          TransactionStatus: response.get("Transactions[0].TransactionStatus"),
-        });
-      } else {
-        var errorCodes = response
-          .get("Transactions[0].ResponseMessage")
-          .split(", ");
-        res.json({
-          status: 400,
-          errorCodes: errorCodes,
-        });
-      }
-    })
-    .catch(function (reason) {
-      reason.getErrors().forEach(function (error) {
-        console.log("Response Messages: " + rapid.getMessage(error, "en"));
-      });
-      res.json({
-        status: 400,
-        errorCodes: reason,
-      });
-    });
+exports.getAccessCode = (AccessCode) => {
+  return client.queryTransaction(AccessCode);
 };
 
 exports.payment = (amount) => {
@@ -68,7 +41,7 @@ exports.payment = (amount) => {
     },
     // Change these to your server
     RedirectUrl: process.env.PAYMENT_URL + "/payment",
-    CancelUrl: process.env.PAYMENT_URL + "/payment/cancel",
+    CancelUrl: process.env.PAYMENT_URL + "/payment",
     TransactionType: "Purchase",
   });
 };
