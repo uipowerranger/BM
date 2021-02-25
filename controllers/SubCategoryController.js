@@ -42,6 +42,7 @@ exports.CategoryList = [
             status: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
+            "map_category.state_details": 1,
           },
         },
         { $match: { status: { $ne: 3 } } },
@@ -95,6 +96,7 @@ exports.CategoryListById = [
             status: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
+            "map_category.state_details": 1,
           },
         },
       ]).then((categories) => {

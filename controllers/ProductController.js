@@ -31,6 +31,85 @@ function ProductData(data) {
 }
 
 /**
+ * By State
+ */
+
+exports.ProductListByState = [
+  function (req, res) {
+    try {
+      ProductModel.aggregate([
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_details",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $lookup: {
+            from: "sub_categories",
+            localField: "sub_category_details",
+            foreignField: "_id",
+            as: "map_sub_category",
+          },
+        },
+        {
+          $unwind: "$map_sub_category",
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "state_details",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "postcodes",
+            localField: "post_code_details",
+            foreignField: "_id",
+            as: "map_postcode",
+          },
+        },
+        {
+          $unwind: "$map_postcode",
+        },
+        {
+          $match: {
+            state_details: mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+      ]).then((products) => {
+        if (products.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            products
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
  * Product List.
  *
  * @returns {Object}
