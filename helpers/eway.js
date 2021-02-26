@@ -11,34 +11,27 @@ exports.getAccessCode = (AccessCode) => {
   return client.queryTransaction(AccessCode);
 };
 
-exports.payment = (amount) => {
-  //   client
-  //     .createTransaction(rapid.Enum.Method.DIRECT, {
-  //       Customer: {
-  //         CardDetails: {
-  //           Name: "John Smith",
-  //           Number: "4444333322221111",
-  //           ExpiryMonth: "12",
-  //           ExpiryYear: "25",
-  //           CVN: "123",
-  //         },
-  //       },
-  //       Payment: {
-  //         TotalAmount: 1000,
-  //       },
-  //       TransactionType: "Purchase",
-  //     })
-  //     .then(function (response) {
-  //       console.log(response);
-  //       if (response.get("TransactionStatus")) {
-  //         console.log("Payment successful! ID: " + response.get("TransactionID"));
-  //       }
-  //     });
-
+exports.payment = (data) => {
   return client.createTransaction(rapid.Enum.Method.RESPONSIVE_SHARED, {
-    Payment: {
-      TotalAmount: amount,
-    },
+    // Customer: {
+    //   FirstName: "John",
+    //   LastName: "Smith",
+    //   Street1: "Level 5",
+    //   Street2: "369 Queen Street",
+    //   City: "Sydney",
+    //   State: "NSW",
+    //   PostalCode: "2000",
+    //   Country: "au",
+    //   Email: "demo@example.org",
+    // },
+    // Payment: {
+    //   TotalAmount: 1000,
+    //   InvoiceNumber: "Inv 4444",
+    //   InvoiceDescription: "Individual Invoice Description",
+    //   InvoiceReference: "513456",
+    //   CurrencyCode: "AUD",
+    // },
+    ...data,
     // Change these to your server
     RedirectUrl: process.env.PAYMENT_URL + "/payment",
     CancelUrl: process.env.PAYMENT_URL + "/payment",

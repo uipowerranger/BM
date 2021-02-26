@@ -42,25 +42,57 @@ exports.create = [
         );
       } else {
         const { _id, ...rest } = req.body;
-        var order = new CheckoutModel({
-          user: req.user._id,
-          ...rest,
-        });
-        // Save order.
-        order.save(function (err) {
-          if (err) {
-            return apiResponse.ErrorResponse(res, err);
+        CheckoutModel.find(
+          { user: req.user._id, item_id: req.body.item_id },
+          (err, existData) => {
+            if (!err) {
+              if (existData.length === 0) {
+                var order = new CheckoutModel({
+                  user: req.user._id,
+                  ...rest,
+                });
+                // Save order.
+                order.save(function (err) {
+                  if (err) {
+                    return apiResponse.ErrorResponse(res, err);
+                  }
+                  let orderData = {
+                    _id: order._id,
+                    createdAt: order.createdAt,
+                  };
+                  return apiResponse.successResponseWithData(
+                    res,
+                    "Checkout Success.",
+                    orderData
+                  );
+                });
+              } else {
+                let oldData = existData[0];
+                CheckoutModel.findByIdAndUpdate(
+                  { _id: oldData._id },
+                  rest,
+                  {},
+                  (err, respData) => {
+                    if (err) {
+                      return apiResponse.ErrorResponse(res, err);
+                    }
+                    let orderData = {
+                      _id: respData._id,
+                      createdAt: respData.createdAt,
+                    };
+                    return apiResponse.successResponseWithData(
+                      res,
+                      "Checkout Success.",
+                      orderData
+                    );
+                  }
+                );
+              }
+            } else {
+              return apiResponse.ErrorResponse(res, err);
+            }
           }
-          let orderData = {
-            _id: order._id,
-            createdAt: order.createdAt,
-          };
-          return apiResponse.successResponseWithData(
-            res,
-            "Checkout Success.",
-            orderData
-          );
-        });
+        );
       }
     } catch (err) {
       //throw error in json response with status 500.
@@ -100,7 +132,6 @@ exports.CheckoutList = [
           },
         },
       ]).then((orders) => {
-        console.log(req.user._id);
         if (orders.length > 0) {
           return apiResponse.successResponseWithData(
             res,

@@ -9,8 +9,21 @@ router.get("/", (req, res) => {
     .then(function (response) {
       if (response.get("Transactions[0].TransactionStatus")) {
         return apiResponse.successResponseWithData(res, "Payment Success", {
-          TransactionID: response.get("Transactions[0].TransactionID"),
-          TransactionStatus: response.get("Transactions[0].TransactionStatus"),
+          transaction: {
+            TransactionID: response.get("Transactions[0].TransactionID"),
+            TransactionStatus: response.get(
+              "Transactions[0].TransactionStatus"
+            ),
+            AuthorisationCode: response.get(
+              "Transactions[0].AuthorisationCode"
+            ),
+            ResponseCode: response.get("Transactions[0].ResponseCode"),
+            ResponseMessage: response.get("Transactions[0].ResponseMessage"),
+            InvoiceNumber: response.get("Transactions[0].InvoiceNumber"),
+            InvoiceReference: response.get("Transactions[0].InvoiceReference"),
+            TotalAmount: response.get("Transactions[0].TotalAmount"),
+            Customer: response.get("Transactions[0].Customer"),
+          },
         });
       } else {
         var errorCodes = response

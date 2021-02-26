@@ -25,6 +25,8 @@ mongoose.set("useFindAndModify", false);
 exports.create = [
   auth,
   // Validate fields.
+  body("first_name", "First name is required").exists().isString(),
+  body("last_name", "Last name is required").exists().isString(),
   body("items").isArray().withMessage("Items must be Array of objects."),
   body("items.*.item_id", "Item_id must be a string").exists().isString(),
   body("items.*.item_name", "Item name must be a string").exists().isString(),
@@ -78,33 +80,37 @@ exports.create = [
           ...rest,
         });
         // Save order.
-        let html = "<p>Your order details:</p><p></p>";
-        html =
-          html +
-          "<table width='600px' border='1' cellspacing='0'><thead><tr><th>Item</th><th>Quantity</th><th>Price</th></tr></thead><tbody>";
-        let orders = req.body.items.map((it) => {
-          return (
-            "<tr><td>" +
-            it.item_name +
-            "</td><td style='align-items:center'>" +
-            it.quantity +
-            "</td><td style='align-items:center'>" +
-            it.price +
-            "</td></tr>"
-          );
-        });
-        html = html + orders.join("");
-        html = html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
-
-        eway
-          .payment(1000)
-          .then(function (response) {
-            if (response.getErrors().length == 0) {
-              var redirectURL = response.get("SharedPaymentUrl");
-              order.save(function (err) {
-                if (err) {
-                  return apiResponse.ErrorResponse(res, err);
-                }
+        order.save(function (err) {
+          if (err) {
+            return apiResponse.ErrorResponse(res, err);
+          }
+          let paymentData = {
+            Customer: {
+              FirstName: req.body.first_name,
+              LastName: req.body.last_name,
+              Street1: req.body.mailing_address.address1,
+              Street2: req.body.mailing_address.address2,
+              City: req.body.mailing_address.city,
+              State: req.body.mailing_address.state,
+              PostalCode: req.body.mailing_address.postcode,
+              Country: "au",
+              Email: req.body.email_id,
+              Mobile: req.body.phone_number,
+            },
+            Payment: {
+              TotalAmount: req.body.total_amount,
+              InvoiceNumber: order._id,
+              InvoiceDescription: "Birlamart Purchase",
+              InvoiceReference: "",
+              CurrencyCode: "AUD",
+            },
+          };
+          ///console.log(paymentData);
+          eway
+            .payment(paymentData)
+            .then(function (response) {
+              if (response.getErrors().length == 0) {
+                var redirectURL = response.get("SharedPaymentUrl");
                 let orderData = {
                   _id: order._id,
                   createdAt: order.createdAt,
@@ -115,41 +121,17 @@ exports.create = [
                   "Order Success.",
                   orderData
                 );
+              } else {
+                return apiResponse.ErrorResponse(res, response.getErrors());
+              }
+            })
+            .catch(function (reason) {
+              reason.getErrors().forEach(function (error) {
+                console.log("Response Messages: " + (error, "en"));
               });
-            } else {
-              return apiResponse.ErrorResponse(res, response.getErrors());
-            }
-          })
-          .catch(function (reason) {
-            reason.getErrors().forEach(function (error) {
-              console.log("Response Messages: " + (error, "en"));
+              return apiResponse.ErrorResponse(res, reason.getErrors());
             });
-            return apiResponse.ErrorResponse(res, reason.getErrors());
-          });
-        // Send confirmation email
-        // mailer
-        //   .send(
-        //     constants.confirmEmails.from,
-        //     req.user.email_id,
-        //     "Your Order on Birlamart",
-        //     html
-        //   )
-        //   .then(function () {
-        //     order.save(function (err) {
-        //       if (err) {
-        //         return apiResponse.ErrorResponse(res, err);
-        //       }
-        //       let orderData = {
-        //         _id: order._id,
-        //         createdAt: order.createdAt,
-        //       };
-        //       return apiResponse.successResponseWithData(
-        //         res,
-        //         "Order Success.",
-        //         orderData
-        //       );
-        //     });
-        //   });
+        });
       }
     } catch (err) {
       //throw error in json response with status 500.
@@ -360,19 +342,18 @@ exports.OrderUpdateStatus = [
           );
         } else {
           const { order_id, ...rest } = req.body;
-          var order = new OrderModel({
-            ...rest,
-            _id: order_id,
-          });
-          OrderModel.findByIdAndUpdate(
-            req.body.order_id,
-            order,
-            {},
-            function (err) {
+          OrderModel.updateOne(
+            { _id: req.body.order_id },
+            rest,
+            function (err, data) {
               if (err) {
                 return apiResponse.ErrorResponse(res, err);
               } else {
-                return apiResponse.successResponse(res, "Order Updated");
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Order Updated",
+                  data
+                );
               }
             }
           );
@@ -406,14 +387,120 @@ exports.VerifyToken = [
           .getAccessCode(req.body.AccessCode)
           .then(function (response) {
             if (response.get("Transactions[0].TransactionStatus")) {
-              return apiResponse.successResponseWithData(
-                res,
-                "Payment Success",
-                {
-                  TransactionID: response.get("Transactions[0].TransactionID"),
-                  TransactionStatus: response.get(
-                    "Transactions[0].TransactionStatus"
-                  ),
+              //console.log(response.get("Transactions[0].InvoiceNumber"));
+              OrderModel.findById(
+                response.get("Transactions[0].InvoiceNumber"),
+                (err, data) => {
+                  if (!err) {
+                    OrderModel.updateOne(
+                      { _id: response.get("Transactions[0].InvoiceNumber") },
+                      { payment: 1 },
+                      function (err, data) {}
+                    );
+                    let html = "<p>Your order details:</p><p></p>";
+                    html =
+                      html +
+                      "<table width='600px' border='1' cellspacing='0'><thead><tr><th>Item</th><th>Quantity</th><th>Price</th></tr></thead><tbody>";
+                    let orders = data.items.map((it) => {
+                      return (
+                        "<tr><td>" +
+                        it.item_name +
+                        "</td><td style='align-items:center'>" +
+                        it.quantity +
+                        "</td><td style='align-items:center'>" +
+                        it.price +
+                        "</td></tr>"
+                      );
+                    });
+                    html = html + orders.join("");
+                    html =
+                      html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
+
+                    // Send confirmation email
+                    mailer
+                      .send(
+                        constants.confirmEmails.from,
+                        data.email_id,
+                        "Your Order on Birlamart",
+                        html
+                      )
+                      .then(function () {
+                        return apiResponse.successResponseWithData(
+                          res,
+                          "Payment Success",
+                          {
+                            transaction: {
+                              TransactionID: response.get(
+                                "Transactions[0].TransactionID"
+                              ),
+                              TransactionStatus: response.get(
+                                "Transactions[0].TransactionStatus"
+                              ),
+                              AuthorisationCode: response.get(
+                                "Transactions[0].AuthorisationCode"
+                              ),
+                              ResponseCode: response.get(
+                                "Transactions[0].ResponseCode"
+                              ),
+                              ResponseMessage: response.get(
+                                "Transactions[0].ResponseMessage"
+                              ),
+                              InvoiceNumber: response.get(
+                                "Transactions[0].InvoiceNumber"
+                              ),
+                              InvoiceReference: response.get(
+                                "Transactions[0].InvoiceReference"
+                              ),
+                              TotalAmount: response.get(
+                                "Transactions[0].TotalAmount"
+                              ),
+                              Customer: response.get(
+                                "Transactions[0].Customer"
+                              ),
+                            },
+                          }
+                        );
+                      })
+                      .catch((err) => {
+                        return apiResponse.successResponseWithData(
+                          res,
+                          "Payment Success",
+                          {
+                            transaction: {
+                              TransactionID: response.get(
+                                "Transactions[0].TransactionID"
+                              ),
+                              TransactionStatus: response.get(
+                                "Transactions[0].TransactionStatus"
+                              ),
+                              AuthorisationCode: response.get(
+                                "Transactions[0].AuthorisationCode"
+                              ),
+                              ResponseCode: response.get(
+                                "Transactions[0].ResponseCode"
+                              ),
+                              ResponseMessage: response.get(
+                                "Transactions[0].ResponseMessage"
+                              ),
+                              InvoiceNumber: response.get(
+                                "Transactions[0].InvoiceNumber"
+                              ),
+                              InvoiceReference: response.get(
+                                "Transactions[0].InvoiceReference"
+                              ),
+                              TotalAmount: response.get(
+                                "Transactions[0].TotalAmount"
+                              ),
+                              Customer: response.get(
+                                "Transactions[0].Customer"
+                              ),
+                            },
+                          }
+                        );
+                      });
+                  } else {
+                    return apiResponse.ErrorResponse(res, "Error occured");
+                  }
                 }
               );
             } else {
