@@ -57,7 +57,7 @@ exports.create = [
           };
           return apiResponse.successResponseWithData(
             res,
-            "Order Success.",
+            "Checkout Success.",
             orderData
           );
         });
@@ -174,6 +174,70 @@ exports.deleteByUser = [
         }
       }
     } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.Update = [
+  auth, // Validate fields.
+  body("item_id", "Item_id must be a string").exists().isString(),
+  body("quantity", "Quantity must be a number").exists().isInt(),
+  body("price", "Price must be a Decimal").exists().isDecimal(),
+  body("amount", "Amount must be a Decimal").exists().isDecimal(),
+  // Process request after validation and sanitization.
+  (req, res) => {
+    try {
+      // Extract the validation errors from a request.
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Invalid Error.",
+          "Invalid ID"
+        );
+      } else {
+        const { _id, ...rest } = req.body;
+        var order = new CheckoutModel({
+          user: req.user._id,
+          ...rest,
+          _id: req.params.id,
+        });
+        CheckoutModel.findById(req.params.id, function (err, foundData) {
+          if (foundData === null) {
+            return apiResponse.notFoundResponse(
+              res,
+              "Checkout not exists with this id"
+            );
+          } else {
+            // Update order.
+            CheckoutModel.findByIdAndUpdate(
+              req.params.id,
+              order,
+              {},
+              function (err) {
+                if (err) {
+                  return apiResponse.ErrorResponse(res, err);
+                }
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Checkout Updated.",
+                  order
+                );
+              }
+            );
+          }
+        });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
   },

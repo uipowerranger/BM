@@ -6,6 +6,7 @@ var router = express.Router();
 router.post("/create", CheckoutController.create);
 router.get("/", CheckoutController.CheckoutList);
 router.delete("/:id", CheckoutController.delete);
+router.put("/:id", CheckoutController.Update);
 router.post("/delete-user", CheckoutController.deleteByUser);
 
 module.exports = router;
