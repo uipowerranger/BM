@@ -12,6 +12,7 @@ var checkoutRouter = require("./checkout");
 var clientRouter = require("./client");
 var wishlistRouter = require("./wishlist");
 var enquiryRouter = require("./enquiry");
+var redeemRouter = require("./redeem");
 
 var app = express();
 
@@ -28,5 +29,6 @@ app.use("/checkout", checkoutRouter);
 app.use("/client", clientRouter);
 app.use("/wishlist", wishlistRouter);
 app.use("/enquiry", enquiryRouter);
+app.use("/redeem", redeemRouter);
 
 module.exports = app;

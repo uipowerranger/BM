@@ -1,5 +1,6 @@
 const OrderModel = require("../models/OrderModel");
 const ProductModel = require("../models/ProductModel");
+const RedeemModel = require("../models/RedeemModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -27,7 +28,11 @@ exports.create = [
   // Validate fields.
   body("first_name", "First name is required").exists().isString(),
   body("last_name", "Last name is required").exists().isString(),
-  body("items").isArray().withMessage("Items must be Array of objects."),
+  body("items")
+    .isLength({ min: 1 })
+    .withMessage("Items cannot be empty")
+    .isArray()
+    .withMessage("Items must be Array of objects."),
   body("items.*.item_id", "Item_id must be a string").exists().isString(),
   body("items.*.item_name", "Item name must be a string").exists().isString(),
   body("items.*.item_image", "Item image must be a string").exists().isString(),
@@ -387,7 +392,6 @@ exports.VerifyToken = [
           .getAccessCode(req.body.AccessCode)
           .then(function (response) {
             if (response.get("Transactions[0].TransactionStatus")) {
-              //console.log(response.get("Transactions[0].InvoiceNumber"));
               OrderModel.findById(
                 response.get("Transactions[0].InvoiceNumber"),
                 (err, data) => {
@@ -397,6 +401,17 @@ exports.VerifyToken = [
                       { payment: 1 },
                       function (err, data) {}
                     );
+                    if (data.total_amount >= 100) {
+                      let redeem = Math.ceil(data.total_amount / 100);
+                      let redeemData = new RedeemModel({
+                        date: data.order_date,
+                        user: data.user,
+                        order_id: data._id,
+                        total_amount: data.total_amount,
+                        redeem_points: redeem,
+                      });
+                      redeemData.save((err, msg) => {});
+                    }
                     let html = "<p>Your order details:</p><p></p>";
                     html =
                       html +

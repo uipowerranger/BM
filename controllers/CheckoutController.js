@@ -102,6 +102,102 @@ exports.create = [
 ];
 
 /**
+ * Bulk add
+ */
+
+exports.Bulkcreate = [
+  auth,
+  // Validate fields.
+  body("items")
+    .isLength({ min: 1 })
+    .withMessage("Items cannot be empty")
+    .isArray()
+    .withMessage("Items must be Array of objects."),
+  body("items.*.item_id", "Item_id must be a string").exists().isString(),
+  body("items.*.quantity", "Quantity must be a number").exists().isInt(),
+  body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
+  body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
+  // Process request after validation and sanitization.
+  (req, res) => {
+    try {
+      // Extract the validation errors from a request.
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        const { _id, items } = req.body;
+        items.map((item) => {
+          CheckoutModel.find(
+            { user: req.user._id, item_id: item.item_id },
+            (err, existData) => {
+              if (!err) {
+                if (existData.length === 0) {
+                  var order = new CheckoutModel({
+                    user: req.user._id,
+                    ...item,
+                  });
+                  // Save order.
+                  order.save(function (err) {
+                    if (err) {
+                      return {
+                        err: "error on add",
+                      };
+                    }
+                    let orderData = {
+                      _id: order._id,
+                      createdAt: order.createdAt,
+                    };
+                    return {
+                      message: "Checkout Success.",
+                      data: orderData,
+                    };
+                  });
+                } else {
+                  let oldData = existData[0];
+                  CheckoutModel.findByIdAndUpdate(
+                    { _id: oldData._id },
+                    item,
+                    {},
+                    (err, respData) => {
+                      if (err) {
+                        return {
+                          err: "error on old add",
+                        };
+                      }
+                      let orderData = {
+                        _id: respData._id,
+                        createdAt: respData.createdAt,
+                      };
+                      return {
+                        message: "Checkout Success.",
+                        data: orderData,
+                      };
+                    }
+                  );
+                }
+              } else {
+                return {
+                  err: "err",
+                };
+              }
+            }
+          );
+        });
+        return apiResponse.successResponse(res, "Checkout Added");
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+/**
  * Checkout List
  */
 

@@ -42,25 +42,48 @@ exports.create = [
         );
       } else {
         const { _id, ...rest } = req.body;
-        var order = new WishlistModel({
+        WishlistModel.find({
           user: req.user._id,
-          ...rest,
-        });
-        // Save order.
-        order.save(function (err) {
-          if (err) {
+          item_id: req.body.item_id,
+        })
+          .then((foundData) => {
+            if (foundData.length > 0) {
+              WishlistModel.findByIdAndDelete(
+                { _id: foundData[0]._id },
+                {},
+                (err, del) => {
+                  if (err) {
+                    return apiResponse.ErrorResponse(res, err);
+                  } else {
+                    return apiResponse.successResponse(res, "Wishlist removed");
+                  }
+                }
+              );
+            } else {
+              var order = new WishlistModel({
+                user: req.user._id,
+                ...rest,
+              });
+              // Save order.
+              order.save(function (err) {
+                if (err) {
+                  return apiResponse.ErrorResponse(res, err);
+                }
+                let orderData = {
+                  _id: order._id,
+                  createdAt: order.createdAt,
+                };
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Order Success.",
+                  orderData
+                );
+              });
+            }
+          })
+          .catch((err) => {
             return apiResponse.ErrorResponse(res, err);
-          }
-          let orderData = {
-            _id: order._id,
-            createdAt: order.createdAt,
-          };
-          return apiResponse.successResponseWithData(
-            res,
-            "Order Success.",
-            orderData
-          );
-        });
+          });
       }
     } catch (err) {
       //throw error in json response with status 500.
