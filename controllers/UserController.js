@@ -320,7 +320,7 @@ exports.login = [
               function (err, same) {
                 if (same) {
                   //Check account confirmation.
-                  if (user.isConfirmed) {
+                  if (true) {
                     // Check User's account active or not.
                     if (user.status) {
                       let otp = utility.randomNumber(6);
@@ -379,11 +379,6 @@ exports.login = [
                         "Account is not active. Please contact admin."
                       );
                     }
-                  } else {
-                    return apiResponse.unauthorizedResponse(
-                      res,
-                      "Account is not confirmed. Please confirm your account."
-                    );
                   }
                 } else {
                   return apiResponse.unauthorizedResponse(
