@@ -13,6 +13,7 @@ var clientRouter = require("./client");
 var wishlistRouter = require("./wishlist");
 var enquiryRouter = require("./enquiry");
 var redeemRouter = require("./redeem");
+var stockRouter = require("./stock");
 
 var app = express();
 
@@ -30,5 +31,6 @@ app.use("/client", clientRouter);
 app.use("/wishlist", wishlistRouter);
 app.use("/enquiry", enquiryRouter);
 app.use("/redeem", redeemRouter);
+app.use("/stock", stockRouter);
 
 module.exports = app;

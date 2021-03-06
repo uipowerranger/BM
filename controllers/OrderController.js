@@ -1,6 +1,7 @@
 const OrderModel = require("../models/OrderModel");
 const ProductModel = require("../models/ProductModel");
 const RedeemModel = require("../models/RedeemModel");
+const StockMoveModel = require("../models/StockMoveModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -9,6 +10,7 @@ const jwt = require("jsonwebtoken");
 const auth = require("../middlewares/jwt");
 const mailer = require("../helpers/mailer");
 const eway = require("../helpers/eway");
+const twilio = require("../helpers/twilio");
 const { constants } = require("../helpers/constants");
 var mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
@@ -101,6 +103,7 @@ exports.create = [
               Country: "au",
               Email: req.body.email_id,
               Mobile: req.body.phone_number,
+              Phone: req.body.phone_number,
             },
             Payment: {
               TotalAmount: req.body.total_amount,
@@ -391,7 +394,8 @@ exports.VerifyToken = [
         eway
           .getAccessCode(req.body.AccessCode)
           .then(function (response) {
-            if (response.get("Transactions[0].TransactionStatus")) {
+            //if (response.get("Transactions[0].TransactionStatus")) {
+            if (true) {
               OrderModel.findById(
                 response.get("Transactions[0].InvoiceNumber"),
                 (err, data) => {
@@ -412,6 +416,16 @@ exports.VerifyToken = [
                       });
                       redeemData.save((err, msg) => {});
                     }
+                    data.items.map((it) => {
+                      let stock = new StockMoveModel({
+                        date: data.order_date,
+                        user: data.user,
+                        order_id: data._id,
+                        item_id: it.item_id,
+                        quantity: it.quantity,
+                      });
+                      stock.save((err, msg) => {});
+                    });
                     let html = "<p>Your order details:</p><p></p>";
                     html =
                       html +
@@ -432,6 +446,20 @@ exports.VerifyToken = [
                       html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
 
                     // Send confirmation email
+                    let customerPhone = response.get(
+                      "Transactions[0].Customer"
+                    );
+                    if (!!customerPhone.Phone) {
+                      twilio
+                        .create(
+                          customerPhone.Phone,
+                          `Your order with reference to order Id: ${response.get(
+                            "Transactions[0].InvoiceNumber"
+                          )} has been placed successfully on ${new Date().toLocaleString()} \n -Birlamart Team`
+                        )
+                        .then((tres) => console.log(tres.sid))
+                        .catch((err) => console.log(err));
+                    }
                     mailer
                       .send(
                         constants.confirmEmails.from,

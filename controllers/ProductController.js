@@ -16,6 +16,7 @@ function ProductData(data) {
   this.items_available = data.items_available;
   this.post_code_details = data.post_code_details;
   this.price = data.price;
+  this.actualPrice = data.actualPrice;
   this.state_details = data.state_details;
   this.sub_category_details = data.sub_category_details;
   this.weight = data.weight;
@@ -462,15 +463,19 @@ exports.ProductStore = [
     .escape(),
   body("price", "Price must not be empty.")
     .isLength({ min: 1 })
-    .withMessage("Minimum 3 characters.")
+    .withMessage("Minimum 1 characters.")
+    .trim(),
+  body("actualPrice", "Actual Price must not be empty.")
+    .isLength({ min: 1 })
+    .withMessage("Minimum 1 characters.")
     .trim(),
   body("weight", "Weight must not be empty.")
     .isLength({ min: 1 })
-    .withMessage("Minimum 3 characters.")
+    .withMessage("Minimum 1 characters.")
     .trim(),
   body("items_available", "Items vailable must not be empty.")
     .isLength({ min: 1 })
-    .withMessage("Minimum 3 characters.")
+    .withMessage("Minimum 1 characters.")
     .trim(),
   body("category_details", "Category must not be empty")
     .isLength({ min: 1 })

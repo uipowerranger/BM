@@ -4,7 +4,6 @@ const { body, validationResult } = require("express-validator");
 const apiResponse = require("../helpers/apiResponse");
 const auth = require("../middlewares/jwt");
 var mongoose = require("mongoose");
-const { response } = require("express");
 mongoose.set("useFindAndModify", false);
 
 /**

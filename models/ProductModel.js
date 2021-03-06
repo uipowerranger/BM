@@ -8,6 +8,7 @@ var ProductSchema = new Schema(
     offer_to_date: { type: Date, required: true, default: new Date() },
     items_available: { type: Number, required: true, default: 0 },
     price: { type: Number, required: true, default: 0 },
+    actualPrice: { type: Number, required: true, default: 0 },
     weight: { type: String, required: true },
     category_details: {
       type: Schema.ObjectId,
