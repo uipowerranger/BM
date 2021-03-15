@@ -9,7 +9,7 @@ var RedeemSchema = new Schema(
     order_id: { type: Schema.ObjectId, ref: "orders", required: true },
     total_amount: { type: Number, required: true },
     redeem_points: { type: Number, required: true },
-    status: { type: Number, required: true, default: 1 },
+    status: { type: Number, required: true, default: 1 }, //status = 1 - Redeem earned, status = 2 - Redeem used
   },
   { timestamps: true }
 );

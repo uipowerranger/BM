@@ -42,7 +42,20 @@ exports.RedeemTotal = [
             user: req.user._id,
             redeem: {
               $cond: {
-                if: { $eq: ["$user", mongoose.Types.ObjectId(req.user._id)] },
+                if: {
+                  $eq: ["$user", mongoose.Types.ObjectId(req.user._id)],
+                  $eq: ["$status", 1],
+                },
+                then: "$redeem_points",
+                else: 0,
+              },
+            },
+            redeem_used: {
+              $cond: {
+                if: {
+                  $eq: ["$user", mongoose.Types.ObjectId(req.user._id)],
+                  $eq: ["$status", 2],
+                },
                 then: "$redeem_points",
                 else: 0,
               },
@@ -52,14 +65,23 @@ exports.RedeemTotal = [
         {
           $group: {
             _id: "$user",
-            totalRedeem: { $sum: "$redeem" },
+            redeem_earned: { $sum: "$redeem" },
+            redeem_used: { $sum: "$redeem_used" },
           },
         },
       ]).then((response) => {
+        let data = {};
+        response.map((r) => {
+          data["_id"] = r._id;
+          data["redeem_earned"] = r.redeem_earned;
+          data["redeem_used"] = r.redeem_used;
+          data["redeem_total"] = r.redeem_earned - r.redeem_used;
+          return true;
+        });
         return apiResponse.successResponseWithData(
           res,
           "Total Redeem Fetch",
-          response
+          data
         );
       });
     } catch (error) {

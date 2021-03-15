@@ -68,6 +68,9 @@ exports.create = [
   body("shipping_address.postcode", "Shipping Postcode Code must be entered")
     .exists()
     .isString(),
+  body("state_details", "User selected state details is required")
+    .exists()
+    .isString(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
@@ -415,6 +418,17 @@ exports.VerifyToken = [
                         redeem_points: redeem,
                       });
                       redeemData.save((err, msg) => {});
+                    }
+                    if (data.redeempoints_used > 0) {
+                      let redeemDataUsed = new RedeemModel({
+                        date: data.order_date,
+                        user: data.user,
+                        order_id: data._id,
+                        total_amount: data.total_amount,
+                        redeem_points: data.redeempoints_used,
+                        status: 2,
+                      });
+                      redeemDataUsed.save((err, msg) => {});
                     }
                     data.items.map((it) => {
                       let stock = new StockMoveModel({

@@ -36,6 +36,8 @@ var OrderSchema = new mongoose.Schema(
     },
     payment: { type: Boolean, required: false, default: 0 },
     order_completed: { type: Boolean, required: false, default: 0 },
+    state_details: { type: Schema.ObjectId, ref: "states", required: true },
+    redeempoints_used: { type: Number, required: false, default: 0 },
   },
   { timestamps: true }
 );
