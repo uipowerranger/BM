@@ -740,9 +740,9 @@ exports.resetMail = [
             let otp = utility.randomNumber(6);
             let url =
               process.env.PAYMENT_URL +
-              `/#/admin/reset-pwd?email=${data.email_id}&otp=${data.confirmOTP}`;
+              `/#/admin/reset-pwd?email=${data.email_id}&otp=${otp}`;
             // Html email body
-            let html = `<p>Reset Password.</p><p>Click on the below link to reset password.</p><p><a target="_blank" href="${url}">Click here</a></p>`;
+            let html = `<p>Reset Password.</p><p>Your OTP to reset password: ${otp}</p>`;
             // Send confirmation email
             mailer
               .send(
