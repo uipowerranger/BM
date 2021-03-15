@@ -71,6 +71,9 @@ exports.create = [
   body("state_details", "User selected state details is required")
     .exists()
     .isString(),
+  body("redeempoints_used", "User redeempoints_used is required")
+    .exists()
+    .isNumeric(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
