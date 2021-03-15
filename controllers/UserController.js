@@ -748,3 +748,128 @@ exports.HomeData = [
     }
   },
 ];
+
+exports.resetMail = [
+  body("email_id")
+    .isLength({ min: 1 })
+    .trim()
+    .escape()
+    .withMessage("Email must be specified.")
+    .isEmail()
+    .withMessage("Email must be a valid email address."),
+  function (req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        UserModel.findOne({ email_id: req.body.email_id }).then((data) => {
+          if (data) {
+            let otp = utility.randomNumber(6);
+            let url =
+              process.env.PAYMENT_URL +
+              `/#/user/reset-pwd?email=${data.email_id}&otp=${data.confirmOTP}`;
+            // Html email body
+            let html = `<p>Reset Password.</p><p>Click on the below link to reset password.</p><p><a target="_blank" href="${url}">Click here</a></p>`;
+            // Send confirmation email
+            mailer
+              .send(
+                constants.confirmEmails.from,
+                req.body.email_id,
+                "Reset Password ",
+                html
+              )
+              .then(function () {
+                UserModel.findOneAndUpdate(
+                  { email_id: req.body.email_id },
+                  {
+                    isConfirmed: 1,
+                    confirmOTP: otp,
+                  }
+                ).catch((err) => {
+                  return apiResponse.ErrorResponse(res, err);
+                });
+              });
+            return apiResponse.successResponse(res, "Mail sent Success.");
+          } else {
+            return apiResponse.ErrorResponse(res, "Email not found");
+          }
+        });
+      }
+    } catch (error) {
+      return apiResponse.ErrorResponse(res, error);
+    }
+  },
+];
+
+exports.resetPassword = [
+  body("email_id")
+    .isLength({ min: 1 })
+    .trim()
+    .escape()
+    .withMessage("Email must be specified.")
+    .isEmail()
+    .withMessage("Email must be a valid email address."),
+  body("password")
+    .isLength({ min: 6 })
+    .trim()
+    .escape()
+    .withMessage("Password must be 6 characters or greater."),
+  body("otp")
+    .isLength({ min: 6 })
+    .trim()
+    .escape()
+    .withMessage("OTP must be 6 characters")
+    .isNumeric()
+    .withMessage("OTP must be numeric"),
+  function (req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        UserModel.findOne({
+          email_id: req.body.email_id,
+          confirmOTP: req.body.otp,
+        }).then((data) => {
+          if (data) {
+            //hash input password
+            bcrypt.hash(req.body.password, 10, function (err, hash) {
+              // generate OTP for confirmation
+              let otp = utility.randomNumber(6);
+              // Create User object with escaped and trimmed data
+              const { password, email_id } = req.body;
+              // Update user.
+              UserModel.findByIdAndUpdate(
+                { _id: data._id },
+                { password: hash },
+                {},
+                function (err) {
+                  if (err) {
+                    return apiResponse.ErrorResponse(res, err);
+                  }
+                  return apiResponse.successResponse(
+                    res,
+                    "Password updated Successfully."
+                  );
+                }
+              );
+            });
+          } else {
+            return apiResponse.ErrorResponse(res, "Email link has expired");
+          }
+        });
+      }
+    } catch (error) {
+      return apiResponse.ErrorResponse(res, error);
+    }
+  },
+];
