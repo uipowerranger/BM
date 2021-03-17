@@ -12,6 +12,7 @@ function CategoryData(data) {
   this.state_details = data.state_details;
   this.post_code_details = data.post_code_details;
   this.createdAt = data.createdAt;
+  this.image = data.image;
 }
 
 /**
@@ -114,8 +115,11 @@ exports.CategoryStore = [
     .withMessage("Minimum 3 characters.")
     .trim()
     .escape(),
-  body("state_details", "State must not be empty.").trim(),
-  body("post_code_details", "Post code must not be empty.").trim(),
+  body("state_details", "State must not be empty.").isLength({ min: 1 }).trim(),
+  body("post_code_details", "Post code must not be empty.")
+    .isLength({ min: 1 })
+    .trim(),
+  body("image", "Image must not be empty.").isLength({ min: 1 }).trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
@@ -123,6 +127,7 @@ exports.CategoryStore = [
         category_name: req.body.category_name,
         state_details: req.body.state_details,
         post_code_details: req.body.post_code_details,
+        image: req.body.image,
       });
 
       if (!errors.isEmpty()) {
@@ -169,6 +174,7 @@ exports.CategoryUpdate = [
   body("post_code_details", "Post code must not be empty.")
     .isLength({ min: 1 })
     .trim(),
+  body("image", "Image must not be empty.").isLength({ min: 1 }).trim(),
   (req, res) => {
     try {
       const errors = validationResult(req);
@@ -177,6 +183,7 @@ exports.CategoryUpdate = [
         state_details: req.body.state_details,
         post_code_details: req.body.post_code_details,
         status: req.body.status,
+        image: req.body.image,
         _id: req.params.id,
       });
 

@@ -1,7 +1,7 @@
 const ProductModel = require("../models/ProductModel");
 const AllCategoryModel = require("../models/CategoryModel");
 const AllStateModel = require("../models/StateModel");
-const { body, validationResult } = require("express-validator");
+const { body, query, validationResult } = require("express-validator");
 const apiResponse = require("../helpers/apiResponse");
 const auth = require("../middlewares/jwt");
 const moment = require("moment");
@@ -103,6 +103,75 @@ exports.ProductListByState = [
           );
         }
       });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.ProductListSearchByState = [
+  body("state_id", "State Id must be required").isLength({ min: 1 }).trim(),
+  body("search_string", "Search must be minimum 3 characters")
+    .isLength({ min: 3 })
+    .trim(),
+  function (req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        const rgx = (pattern) => new RegExp(`.*${pattern}.*`);
+        const searchRgx = rgx(req.body.search_string);
+        ProductModel.aggregate([
+          {
+            $lookup: {
+              from: "categories",
+              localField: "category_details",
+              foreignField: "_id",
+              as: "category",
+            },
+          },
+          {
+            $unwind: "$category",
+          },
+          {
+            $match: {
+              state_details: mongoose.Types.ObjectId(req.body.state_id),
+              item_name: { $regex: searchRgx, $options: "i" },
+            },
+          },
+          {
+            $project: {
+              item_name: 1,
+              image: 1,
+              price: 1,
+              actualPrice: 1,
+              status: 1,
+              "category._id": 1,
+              "category.category_name": 1,
+            },
+          },
+        ]).then((products) => {
+          if (products.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              products
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        });
+      }
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
