@@ -39,6 +39,8 @@ var ProductSchema = new Schema(
     item_name: { type: String, required: true },
     user: { type: Schema.ObjectId, ref: "admins", required: true },
     status: { type: Number, required: true, default: 1 },
+    homepage_filter: { type: String, required: false, default: "" },
+    description: { type: String, required: false, default: "" },
   },
   { timestamps: true }
 );
