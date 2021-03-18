@@ -6,6 +6,10 @@ var router = express.Router();
 router.get("/", ProductController.ProductList);
 router.get("/bystate/:id", ProductController.ProductListByState);
 router.post("/search/bystate", ProductController.ProductListSearchByState);
+router.post(
+  "/bystate/bycategory",
+  ProductController.ProductListSearchByStateandCategory
+);
 router.post("/", ProductController.ProductStore);
 router.put("/:id", ProductController.ProductUpdate);
 router.delete("/:id/:status", ProductController.ProductDelete);

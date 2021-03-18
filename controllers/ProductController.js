@@ -179,6 +179,62 @@ exports.ProductListSearchByState = [
   },
 ];
 
+exports.ProductListSearchByStateandCategory = [
+  body("state_id", "State Id must be required").isLength({ min: 1 }).trim(),
+  body("category_id", "Category Id must be required")
+    .isLength({ min: 3 })
+    .trim(),
+  function (req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        ProductModel.aggregate([
+          {
+            $lookup: {
+              from: "categories",
+              localField: "category_details",
+              foreignField: "_id",
+              as: "category",
+            },
+          },
+          {
+            $unwind: "$category",
+          },
+          {
+            $match: {
+              state_details: mongoose.Types.ObjectId(req.body.state_id),
+              category_details: mongoose.Types.ObjectId(req.body.category_id),
+            },
+          },
+        ]).then((products) => {
+          if (products.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              products
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        });
+      }
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
 /**
  * Product List.
  *
