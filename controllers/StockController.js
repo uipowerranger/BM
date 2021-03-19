@@ -298,3 +298,47 @@ exports.AllProductsMovement = [
     }
   },
 ];
+
+exports.ProductStockAdj = [
+  auth,
+  body("items")
+    .isLength({ min: 1 })
+    .withMessage("Items cannot be empty")
+    .isArray()
+    .withMessage("Items must be Array of objects."),
+  body("items.*.item_id", "Item_id must be a string").exists().isString(),
+  body("items.*.quantity", "Quantity must be a number").exists().isInt(),
+  body("items.*.status", "Status must be a number")
+    .exists()
+    .isIn([1, 2])
+    .withMessage("Values should be either 1 or 2"),
+  (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        // Display sanitized values/errors messages.
+        return apiResponse.validationErrorWithData(
+          res,
+          "Validation Error.",
+          errors.array()
+        );
+      } else {
+        req.body.items.map((it) => {
+          let stock = new StockMoveModel({
+            date: new Date(),
+            user: req.user._id,
+            order_id: mongoose.Types.ObjectId(),
+            item_id: it.item_id,
+            quantity: it.quantity,
+            status: it.status,
+            transactionType: "By Adjustment",
+          });
+          stock.save((err, msg) => {});
+        });
+        return apiResponse.successResponse(res, "Stocks Updated");
+      }
+    } catch (error) {
+      return apiResponse.ErrorResponse(res, error);
+    }
+  },
+];

@@ -440,6 +440,8 @@ exports.VerifyToken = [
                         order_id: data._id,
                         item_id: it.item_id,
                         quantity: it.quantity,
+                        status: 1,
+                        transactionType: "By Order",
                       });
                       stock.save((err, msg) => {});
                     });
