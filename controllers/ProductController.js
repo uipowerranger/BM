@@ -862,6 +862,16 @@ exports.ProductStore = [
             return apiResponse.ErrorResponse(res, err);
           }
           let Product_Data = new ProductData(product);
+          let stock = new StockMoveModel({
+            date: new Date(),
+            user: req.user._id,
+            order_id: mongoose.Types.ObjectId(),
+            item_id: Product_Data._id,
+            quantity: Product_Data.items_available,
+            status: 2,
+            transactionType: "By Create",
+          });
+          stock.save((err, msg) => {});
           return apiResponse.successResponseWithData(
             res,
             "Product add Success.",
