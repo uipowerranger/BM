@@ -16,13 +16,13 @@ exports.start = async () => {
             admins.push(a.email_id);
           } else if (a.role === "state_admin") {
             let isExist = stateAdmins.findIndex((e) => {
-              console.log(
-                mongoose.Types.ObjectId(e.state_id) ===
-                  mongoose.Types.ObjectId(a.assign_state)
-              );
+              // console.log(
+              //   mongoose.Types.ObjectId(e.state_id) ===
+              //     mongoose.Types.ObjectId(a.assign_state)
+              // );
               return true;
             });
-            console.log(isExist, "isExist");
+            // console.log(isExist, "isExist");
             stateAdmins.push({ state_id: a.assign_state, email: [a.email_id] });
           }
         });

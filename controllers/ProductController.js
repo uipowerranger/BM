@@ -119,6 +119,7 @@ exports.ProductListByState = [
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
+            createdAt: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
             "map_sub_category._id": 1,
@@ -132,7 +133,61 @@ exports.ProductListByState = [
         },
       ]).then((products) => {
         if (products.length > 0) {
-          let data = products.map((prod) => {
+          let filterList = [
+            {
+              name: "",
+              prod_list: [],
+            },
+            {
+              name: "None",
+              prod_list: [],
+            },
+            {
+              name: "Best Deal",
+              prod_list: [],
+            },
+            {
+              name: "Deal of the Day",
+              prod_list: [],
+            },
+            {
+              name: "Upto 60% off",
+              prod_list: [],
+            },
+            {
+              name: "Organic",
+              prod_list: [],
+            },
+            {
+              name: "Healthy Diet",
+              prod_list: [],
+            },
+            {
+              name: "Everyday essentials",
+              prod_list: [],
+            },
+            {
+              name: "Best deals in Oils",
+              prod_list: [],
+            },
+            {
+              name: "Hot Deal in Honey",
+              prod_list: [],
+            },
+            {
+              name: "Great offer in Dryfruits",
+              prod_list: [],
+            },
+            {
+              name: "Best Sellers in Beauty",
+              prod_list: [],
+            },
+            {
+              name: "Miscellaneous",
+              prod_list: [],
+            },
+          ];
+          products.map((prod) => {
             let totalStock = 0;
             prod.stockmovements.map((st) => {
               if (st.status === 2) {
@@ -142,6 +197,14 @@ exports.ProductListByState = [
               }
             });
             delete prod.stockmovements;
+            let i = filterList.findIndex(
+              (f) => f.name === prod.homepage_filter
+            );
+            let fIndex = i === -1 ? 0 : i;
+            filterList[fIndex].prod_list.push({
+              ...prod,
+              items_available: totalStock,
+            });
             return {
               ...prod,
               items_available: totalStock,
@@ -150,7 +213,7 @@ exports.ProductListByState = [
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
-            data
+            filterList.filter((d) => d.prod_list.length > 0)
           );
         } else {
           return apiResponse.successResponseWithData(
@@ -299,6 +362,7 @@ exports.ProductListSearchByStateandCategory = [
               actualPrice: 1,
               description: 1,
               homepage_filter: 1,
+              createdAt: 1,
               "category._id": 1,
               "category.category_name": 1,
               stockmovements: 1,
@@ -430,6 +494,7 @@ exports.ProductList = [
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
+            createdAt: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
             "map_sub_category._id": 1,
@@ -567,6 +632,7 @@ exports.AllProductList = [
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
+            createdAt: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
             "map_sub_category._id": 1,
@@ -580,7 +646,61 @@ exports.AllProductList = [
         },
       ]).then((products) => {
         if (products.length > 0) {
-          let data = products.map((prod) => {
+          let filterList = [
+            {
+              name: "",
+              prod_list: [],
+            },
+            {
+              name: "None",
+              prod_list: [],
+            },
+            {
+              name: "Best Deal",
+              prod_list: [],
+            },
+            {
+              name: "Deal of the Day",
+              prod_list: [],
+            },
+            {
+              name: "Upto 60% off",
+              prod_list: [],
+            },
+            {
+              name: "Organic",
+              prod_list: [],
+            },
+            {
+              name: "Healthy Diet",
+              prod_list: [],
+            },
+            {
+              name: "Everyday essentials",
+              prod_list: [],
+            },
+            {
+              name: "Best deals in Oils",
+              prod_list: [],
+            },
+            {
+              name: "Hot Deal in Honey",
+              prod_list: [],
+            },
+            {
+              name: "Great offer in Dryfruits",
+              prod_list: [],
+            },
+            {
+              name: "Best Sellers in Beauty",
+              prod_list: [],
+            },
+            {
+              name: "Miscellaneous",
+              prod_list: [],
+            },
+          ];
+          products.map((prod) => {
             let totalStock = 0;
             prod.stockmovements.map((st) => {
               if (st.status === 2) {
@@ -590,6 +710,14 @@ exports.AllProductList = [
               }
             });
             delete prod.stockmovements;
+            let i = filterList.findIndex(
+              (f) => f.name === prod.homepage_filter
+            );
+            let fIndex = i === -1 ? 0 : i;
+            filterList[fIndex].prod_list.push({
+              ...prod,
+              items_available: totalStock,
+            });
             return {
               ...prod,
               items_available: totalStock,
@@ -598,7 +726,7 @@ exports.AllProductList = [
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
-            data
+            filterList.filter((d) => d.prod_list.length > 0)
           );
         } else {
           return apiResponse.successResponseWithData(
@@ -711,6 +839,7 @@ exports.ProductListByCategory = [
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
+            createdAt: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
             "map_sub_category._id": 1,
@@ -856,6 +985,7 @@ exports.ProductListBySubCategory = [
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
+            createdAt: 1,
             "map_category._id": 1,
             "map_category.category_name": 1,
             "map_sub_category._id": 1,
