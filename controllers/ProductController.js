@@ -32,45 +32,6 @@ function ProductData(data) {
   this.createdAt = data.createdAt;
 }
 
-const stockMovement = (pid) => {
-  return StockMoveModel.aggregate([
-    {
-      $lookup: {
-        from: "products",
-        localField: "item_id",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    {
-      $unwind: "$product",
-    },
-    {
-      $match: {
-        item_id: mongoose.Types.ObjectId(pid),
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        item_id: "$item_id",
-        item_name: "$product.item_name",
-        image: "$product.image",
-        initialStock: "$product.items_available",
-        soldQuantity: {
-          $cond: {
-            if: {
-              $eq: ["$item_id", mongoose.Types.ObjectId(pid)],
-            },
-            then: "$quantity",
-            else: 0,
-          },
-        },
-      },
-    },
-  ]);
-};
-
 /**
  * By State
  */
@@ -303,17 +264,67 @@ exports.ProductListSearchByStateandCategory = [
             $unwind: "$category",
           },
           {
+            $lookup: {
+              from: "stockmovements",
+              localField: "_id",
+              foreignField: "item_id",
+              as: "stockmovements",
+            },
+          },
+          {
             $match: {
               state_details: mongoose.Types.ObjectId(req.body.state_id),
               category_details: mongoose.Types.ObjectId(req.body.category_id),
             },
           },
+          {
+            $project: {
+              offer_from_date: 1,
+              offer_to_date: 1,
+              price: 1,
+              deal_details: 1,
+              offer_details: 1,
+              has_deal: 1,
+              has_offer: 1,
+              home_page_display: 1,
+              status: 1,
+              user: 1,
+              item_name: 1,
+              category_details: 1,
+              image: 1,
+              post_code_details: 1,
+              state_details: 1,
+              sub_category_details: 1,
+              weight: 1,
+              actualPrice: 1,
+              description: 1,
+              homepage_filter: 1,
+              "category._id": 1,
+              "category.category_name": 1,
+              stockmovements: 1,
+            },
+          },
         ]).then((products) => {
           if (products.length > 0) {
+            let data = products.map((prod) => {
+              let totalStock = 0;
+              prod.stockmovements.map((st) => {
+                if (st.status === 2) {
+                  totalStock = totalStock + st.quantity;
+                } else {
+                  totalStock = totalStock - st.quantity;
+                }
+              });
+              delete prod.stockmovements;
+              return {
+                ...prod,
+                items_available: totalStock,
+              };
+            });
             return apiResponse.successResponseWithData(
               res,
               "Operation success",
-              products
+              data
             );
           } else {
             return apiResponse.successResponseWithData(
@@ -384,17 +395,73 @@ exports.ProductList = [
         {
           $unwind: "$map_postcode",
         },
+        {
+          $lookup: {
+            from: "stockmovements",
+            localField: "_id",
+            foreignField: "item_id",
+            as: "stockmovements",
+          },
+        },
         // {
         //   $match: {
-        //     state_details: mongoose.Types.ObjectId(req.user.assign_state),
+        //     status: { $ne: 3 },
         //   },
         // },
+        {
+          $project: {
+            offer_from_date: 1,
+            offer_to_date: 1,
+            price: 1,
+            deal_details: 1,
+            offer_details: 1,
+            has_deal: 1,
+            has_offer: 1,
+            home_page_display: 1,
+            status: 1,
+            user: 1,
+            item_name: 1,
+            category_details: 1,
+            image: 1,
+            post_code_details: 1,
+            state_details: 1,
+            sub_category_details: 1,
+            weight: 1,
+            actualPrice: 1,
+            description: 1,
+            homepage_filter: 1,
+            "map_category._id": 1,
+            "map_category.category_name": 1,
+            "map_sub_category._id": 1,
+            "map_sub_category.sub_category_name": 1,
+            "map_state._id": 1,
+            "map_state.state_name": 1,
+            "map_postcode._id": 1,
+            "map_postcode.post_code": 1,
+            stockmovements: 1,
+          },
+        },
       ]).then((products) => {
         if (products.length > 0) {
+          let data = products.map((prod) => {
+            let totalStock = 0;
+            prod.stockmovements.map((st) => {
+              if (st.status === 2) {
+                totalStock = totalStock + st.quantity;
+              } else {
+                totalStock = totalStock - st.quantity;
+              }
+            });
+            delete prod.stockmovements;
+            return {
+              ...prod,
+              items_available: totalStock,
+            };
+          });
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
-            products
+            data
           );
         } else {
           return apiResponse.successResponseWithData(
@@ -464,18 +531,74 @@ exports.AllProductList = [
           $unwind: "$map_postcode",
         },
         {
+          $lookup: {
+            from: "stockmovements",
+            localField: "_id",
+            foreignField: "item_id",
+            as: "stockmovements",
+          },
+        },
+        {
           $match: {
             status: {
               $ne: 3,
             },
           },
         },
+        {
+          $project: {
+            offer_from_date: 1,
+            offer_to_date: 1,
+            price: 1,
+            deal_details: 1,
+            offer_details: 1,
+            has_deal: 1,
+            has_offer: 1,
+            home_page_display: 1,
+            status: 1,
+            user: 1,
+            item_name: 1,
+            category_details: 1,
+            image: 1,
+            post_code_details: 1,
+            state_details: 1,
+            sub_category_details: 1,
+            weight: 1,
+            actualPrice: 1,
+            description: 1,
+            homepage_filter: 1,
+            "map_category._id": 1,
+            "map_category.category_name": 1,
+            "map_sub_category._id": 1,
+            "map_sub_category.sub_category_name": 1,
+            "map_state._id": 1,
+            "map_state.state_name": 1,
+            "map_postcode._id": 1,
+            "map_postcode.post_code": 1,
+            stockmovements: 1,
+          },
+        },
       ]).then((products) => {
         if (products.length > 0) {
+          let data = products.map((prod) => {
+            let totalStock = 0;
+            prod.stockmovements.map((st) => {
+              if (st.status === 2) {
+                totalStock = totalStock + st.quantity;
+              } else {
+                totalStock = totalStock - st.quantity;
+              }
+            });
+            delete prod.stockmovements;
+            return {
+              ...prod,
+              items_available: totalStock,
+            };
+          });
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
-            products
+            data
           );
         } else {
           return apiResponse.successResponseWithData(
