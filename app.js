@@ -8,6 +8,7 @@ var indexRouter = require("./routes/index");
 var apiRouter = require("./routes/api");
 var paymentRouter = require("./routes/payment");
 var apiResponse = require("./helpers/apiResponse");
+var cronJobs = require("./helpers/cronJobs");
 var cors = require("cors");
 
 // DB connection
@@ -50,6 +51,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //To allow cross-origin requests
 app.use(cors());
+
+//start cron jobs
+cronJobs.start();
 
 // CORS middleware
 app.use((req, res, next) => {
