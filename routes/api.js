@@ -14,6 +14,7 @@ var wishlistRouter = require("./wishlist");
 var enquiryRouter = require("./enquiry");
 var redeemRouter = require("./redeem");
 var stockRouter = require("./stock");
+var carouselRouter = require("./carousel");
 
 var app = express();
 
@@ -32,5 +33,6 @@ app.use("/wishlist", wishlistRouter);
 app.use("/enquiry", enquiryRouter);
 app.use("/redeem", redeemRouter);
 app.use("/stock", stockRouter);
+app.use("/carousel", carouselRouter);
 
 module.exports = app;
