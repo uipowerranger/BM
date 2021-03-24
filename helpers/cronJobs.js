@@ -8,8 +8,8 @@ var moment = require("moment");
 var enumerateDaysBetweenDates = (startDate, endDate) => {
   var dates = [];
   dates.push({
-    fdate: moment(startDate).format("YYYY-MM-DD"),
-    tdate: moment(startDate).format("YYYY-MM-DD"),
+    fdate: moment().format("YYYY-MM-DD"),
+    tdate: moment().format("YYYY-MM-DD"),
   });
   dates.push({
     fdate: moment(startDate).format("YYYY-MM-DD"),
