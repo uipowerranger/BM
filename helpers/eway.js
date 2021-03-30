@@ -34,7 +34,7 @@ exports.payment = (data) => {
     ...data,
     // Change these to your server
     RedirectUrl: process.env.PAYMENT_URL + "/#/thanks",
-    CancelUrl: process.env.PAYMENT_URL + "/#/thanks",
+    CancelUrl: process.env.PAYMENT_URL + "/#/transactionfailed",
     TransactionType: "Purchase",
   });
 };

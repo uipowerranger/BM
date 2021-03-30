@@ -16,7 +16,6 @@ mongoose.set("useFindAndModify", false);
  * @returns {Object}
  */
 exports.create = [
-  auth,
   // Validate fields.
   body("email_id", "Email is required")
     .exists()
@@ -72,7 +71,6 @@ exports.create = [
  */
 
 exports.EnquiryList = [
-  auth,
   function (req, res) {
     try {
       EnquiryModel.find().then((orders) => {
