@@ -369,7 +369,7 @@ exports.login = [
                           );
                           return apiResponse.successResponseWithData(
                             res,
-                            "An Email has sent with OTP Successfully.",
+                            "An Email has sent with OTP Successfully...",
                             userData
                           );
                         });
