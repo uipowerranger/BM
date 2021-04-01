@@ -1,8 +1,8 @@
 const rapid = require("eway-rapid");
 
 var key =
-    "60CF3Ce97nRS1Z1Wp5m9kMmzHHEh8Rkuj31QCtVxjPWGYA9FymyqsK0Enm1P6mHJf0THbR",
-  password = "API-P4ss",
+    "F9802CQJVbYLvDZXPdzYhPsTdIN00OfdRJZ6qVTv8kbRAArtuGpJWkcTZBlPZxMMfuAlNP",
+  password = "wBV6Abrx",
   endpoint = "sandbox";
 
 var client = rapid.createClient(key, password, endpoint);
