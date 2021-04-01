@@ -9,7 +9,42 @@ mongoose.set("useFindAndModify", false);
 exports.CauroselList = [
   (req, res) => {
     try {
-      CauroselModel.find()
+      CauroselModel.aggregate([
+        {
+          $lookup: {
+            from: "states",
+            localField: "state",
+            foreignField: "_id",
+            as: "map_state",
+          },
+        },
+        {
+          $unwind: "$map_state",
+        },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category",
+            foreignField: "_id",
+            as: "map_category",
+          },
+        },
+        {
+          $unwind: "$map_category",
+        },
+        {
+          $project: {
+            description: 1,
+            state: 1,
+            category: 1,
+            createdAt: 1,
+            status: 1,
+            image: 1,
+            "map_state.state_name": 1,
+            "map_category.category_name": 1,
+          },
+        },
+      ])
         .then((data) => {
           return apiResponse.successResponseWithData(res, "Success", data);
         })
@@ -32,8 +67,8 @@ exports.CauroselStore = [
   body("image")
     .isLength({ min: 1 })
     .trim()
-    .escape()
     .withMessage("Image must be specified."),
+  body("state").isLength({ min: 1 }).withMessage("State must be specified."),
   body("category")
     .isLength({ min: 1 })
     .trim()
@@ -61,7 +96,8 @@ exports.CauroselStore = [
           description: req.body.description,
           image: req.body.image,
           category: req.body.category,
-          status: 1,
+          state: req.body.state,
+          status: req.body.status,
         });
         caurosel.save((err, data) => {
           if (err) {
@@ -87,13 +123,13 @@ exports.CauroselUpdate = [
   body("image")
     .isLength({ min: 1 })
     .trim()
-    .escape()
     .withMessage("Image must be specified."),
   body("status")
     .isLength({ min: 1 })
     .withMessage("Status must be specified.")
     .isIn([0, 1])
     .withMessage("Status must be either 0, 1"),
+  body("state").isLength({ min: 1 }).withMessage("State must be specified."),
   body("category")
     .isLength({ min: 1 })
     .trim()
@@ -130,6 +166,7 @@ exports.CauroselUpdate = [
             description: req.body.description,
             image: req.body.image,
             category: req.body.category,
+            state: req.body.state,
             status: req.body.status,
           },
           { new: true }
