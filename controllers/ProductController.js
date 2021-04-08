@@ -116,6 +116,7 @@ exports.ProductListByState = [
             state_details: 1,
             sub_category_details: 1,
             weight: 1,
+            units: 1,
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
@@ -359,6 +360,7 @@ exports.ProductListSearchByStateandCategory = [
               state_details: 1,
               sub_category_details: 1,
               weight: 1,
+              units: 1,
               actualPrice: 1,
               description: 1,
               homepage_filter: 1,
@@ -491,6 +493,7 @@ exports.ProductList = [
             state_details: 1,
             sub_category_details: 1,
             weight: 1,
+            units: 1,
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
@@ -629,6 +632,7 @@ exports.AllProductList = [
             state_details: 1,
             sub_category_details: 1,
             weight: 1,
+            units: 1,
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
@@ -836,6 +840,7 @@ exports.ProductListByCategory = [
             state_details: 1,
             sub_category_details: 1,
             weight: 1,
+            units: 1,
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
@@ -982,6 +987,7 @@ exports.ProductListBySubCategory = [
             state_details: 1,
             sub_category_details: 1,
             weight: 1,
+            units: 1,
             actualPrice: 1,
             description: 1,
             homepage_filter: 1,
@@ -1094,6 +1100,9 @@ exports.ProductStore = [
     .withMessage("Minimum 3 characters.")
     .trim()
     .escape(),
+  body("units", "Units must not be empty.")
+    .isLength({ min: 1 })
+    .withMessage("Minimum 1 characters."),
   (req, res) => {
     try {
       const errors = validationResult(req);

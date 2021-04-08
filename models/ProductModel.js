@@ -41,6 +41,7 @@ var ProductSchema = new Schema(
     status: { type: Number, required: true, default: 1 },
     homepage_filter: { type: String, required: false, default: "" },
     description: { type: String, required: false, default: "" },
+    units: { type: String, required: true, default: "" },
   },
   { timestamps: true }
 );
