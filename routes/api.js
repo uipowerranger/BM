@@ -15,6 +15,7 @@ var enquiryRouter = require("./enquiry");
 var redeemRouter = require("./redeem");
 var stockRouter = require("./stock");
 var carouselRouter = require("./carousel");
+var unitsRouter = require("./units");
 
 var app = express();
 
@@ -34,5 +35,6 @@ app.use("/enquiry", enquiryRouter);
 app.use("/redeem", redeemRouter);
 app.use("/stock", stockRouter);
 app.use("/carousel", carouselRouter);
+app.use("/units", unitsRouter);
 
 module.exports = app;
