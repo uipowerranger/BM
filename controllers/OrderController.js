@@ -1,5 +1,6 @@
 const OrderModel = require("../models/OrderModel");
 const ProductModel = require("../models/ProductModel");
+const UserModel = require("../models/UserModel");
 const RedeemModel = require("../models/RedeemModel");
 const StockMoveModel = require("../models/StockMoveModel");
 const { body, validationResult } = require("express-validator");
@@ -380,6 +381,14 @@ exports.OrderUpdateStatus = [
   },
 ];
 
+const getUserData = async (user) => {
+  return new Promise((resolve, reject) => {
+    UserModel.findById(user)
+      .then((user) => resolve(user))
+      .catch((err) => reject(user));
+  });
+};
+
 exports.VerifyToken = [
   auth,
   body("AccessCode", "AccessCode is required")
@@ -403,7 +412,12 @@ exports.VerifyToken = [
             if (response.get("Transactions[0].TransactionStatus")) {
               OrderModel.findById(
                 response.get("Transactions[0].InvoiceNumber"),
-                (err, data) => {
+                async (err, data) => {
+                  let userData = await getUserData(data.user);
+                  let user = data.user;
+                  if (!!userData && !!userData.first_name) {
+                    user = userData.first_name + " " + userData.last_name;
+                  }
                   if (!err) {
                     OrderModel.updateOne(
                       { _id: response.get("Transactions[0].InvoiceNumber") },
@@ -444,13 +458,48 @@ exports.VerifyToken = [
                       });
                       stock.save((err, msg) => {});
                     });
-                    let html = "<p>Your order details:</p><p></p>";
+                    let html = `<html lang="en">
+
+                      <head>
+                          <meta charset="UTF-8">
+                          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      </head>
+
+                      <body>
+                          <div style="text-align: center;">
+                              <h4>Birlamart Invoice</h4>
+                          </div>
+                          <div>
+                              <p>Hello <strong>${user}</strong>...! </p>
+                              <p>Thank You for Your Order:</p>
+                              <p>For More Shopping Please visit <a href="https:www.birlamart.com">www.birlamart.com </a> </p>
+                              <h4><u> Order Details:</u></h4>
+                              <p>Customer Name:<strong>${user}</strong> </p>
+                              <p>Order Id:<strong>${data._id}</strong></p>
+                              <p>Order Date:<strong>${data.order_date}</strong></p>
+                              <p>Total Items:<strong>${data.items.length}</strong></p>
+                              <p>Total Price:<strong>${data.total_amount}</strong></p>
+                              <p>Bill Type: <strong>Visa/MasterCard/CreditCard/DebitCard</strong> </p>
+                              <h4><u> Order Summary:</u></h4>`;
+
                     html =
                       html +
-                      "<table width='600px' border='1' cellspacing='0'><thead><tr><th>Item</th><th>Quantity</th><th>Price</th></tr></thead><tbody>";
-                    let orders = data.items.map((it) => {
+                      `<table width="50%" border="2" style="margin:30px 10px;border-radius: 13px; border-spacing: 0; padding: 10px;">
+                      <thead style=" background-color: #F1D4AF; border: 0;border-radius: 0;">
+                          <tr>
+                              <th>Sl.No</th>
+                              <th>Product Name</th>
+                              <th>Quantity</th>
+                              <th>Prize</th>
+                          </tr>
+                      </thead>
+                      <tbody>`;
+                    let orders = data.items.map((it, i) => {
                       return (
                         "<tr><td>" +
+                        parseInt(i + 1) +
+                        "</td><td>" +
                         it.item_name +
                         "</td><td style='align-items:center'>" +
                         it.quantity +
@@ -461,7 +510,25 @@ exports.VerifyToken = [
                     });
                     html = html + orders.join("");
                     html =
-                      html + "</tbody></table><p>Thanks,</p><p>BirlaMart</p>";
+                      html +
+                      `</tbody>
+                                  <tfoot style=" background-color: #C5E0DC;">
+                                  <tr>
+                                      <td colspan=" 3">
+                                      </td>
+                                      <td> <strong>$${data.total_amount} (AU)</strong> </td>
+                                  </tr>
+                              </tfoot>
+                          </table>
+                          <div style="margin: 30px;">
+                              <h4>Thanks,</h4>
+                              <h4>Birlamart Team</h4>
+
+                          </div>
+                      </div>
+                  </body>
+
+                  </html>`;
 
                     // Send confirmation email
                     let customerPhone = response.get(
