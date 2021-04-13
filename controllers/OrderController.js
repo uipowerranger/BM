@@ -114,7 +114,7 @@ exports.create = [
             Payment: {
               TotalAmount: req.body.total_amount,
               InvoiceNumber: order._id,
-              InvoiceDescription: "Birlamart Purchase",
+              InvoiceDescription: "Birlamart Order Purchase",
               InvoiceReference: "",
               CurrencyCode: "AUD",
             },
