@@ -105,7 +105,7 @@ exports.create = [
               // Street2: req.body.mailing_address.address2,
               // City: req.body.mailing_address.city,
               // State: req.body.mailing_address.state,
-              // PostalCode: req.body.mailing_address.postcode,
+              PostalCode: req.body.mailing_address.postcode,
               Country: "au",
               Email: req.body.email_id,
               Mobile: req.body.phone_number,
