@@ -101,10 +101,10 @@ exports.create = [
             Customer: {
               FirstName: req.body.first_name,
               LastName: req.body.last_name,
-              Street1: req.body.mailing_address.address1,
-              Street2: req.body.mailing_address.address2,
-              City: req.body.mailing_address.city,
-              State: req.body.mailing_address.state,
+              // Street1: req.body.mailing_address.address1,
+              // Street2: req.body.mailing_address.address2,
+              // City: req.body.mailing_address.city,
+              // State: req.body.mailing_address.state,
               PostalCode: req.body.mailing_address.postcode,
               Country: "au",
               Email: req.body.email_id,
@@ -114,7 +114,7 @@ exports.create = [
             Payment: {
               TotalAmount: req.body.total_amount,
               InvoiceNumber: order._id,
-              InvoiceDescription: "Birlamart Purchase",
+              InvoiceDescription: "Birlamart Order Purchase",
               InvoiceReference: "",
               CurrencyCode: "AUD",
             },
@@ -408,7 +408,7 @@ exports.VerifyToken = [
                     OrderModel.updateOne(
                       { _id: response.get("Transactions[0].InvoiceNumber") },
                       { payment: 1 },
-                      function (err, data) {}
+                      function (err, data) { }
                     );
                     if (data.total_amount >= 100) {
                       let redeem = Math.ceil(data.total_amount / 100);
@@ -419,7 +419,7 @@ exports.VerifyToken = [
                         total_amount: data.total_amount,
                         redeem_points: redeem,
                       });
-                      redeemData.save((err, msg) => {});
+                      redeemData.save((err, msg) => { });
                     }
                     if (data.redeempoints_used > 0) {
                       let redeemDataUsed = new RedeemModel({
@@ -430,7 +430,7 @@ exports.VerifyToken = [
                         redeem_points: data.redeempoints_used,
                         status: 2,
                       });
-                      redeemDataUsed.save((err, msg) => {});
+                      redeemDataUsed.save((err, msg) => { });
                     }
                     data.items.map((it) => {
                       let stock = new StockMoveModel({
@@ -442,7 +442,7 @@ exports.VerifyToken = [
                         status: 1,
                         transactionType: "By Order",
                       });
-                      stock.save((err, msg) => {});
+                      stock.save((err, msg) => { });
                     });
                     let html = "<p>Your order details:</p><p></p>";
                     html =
