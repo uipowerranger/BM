@@ -1,5 +1,6 @@
 const CheckoutModel = require("../models/CheckoutModel");
 const ProductModel = require("../models/ProductModel");
+const WishlistModel = require("../models/WishlistModel");
 const { body, validationResult } = require("express-validator");
 //helper file to prepare responses.
 const apiResponse = require("../helpers/apiResponse");
@@ -114,6 +115,7 @@ exports.Bulkcreate = [
     .isArray()
     .withMessage("Items must be Array of objects."),
   body("items.*.item_id", "Item_id must be a string").exists().isString(),
+  body("items.*._id", "Wishlist Id must be a string").exists().isString(),
   body("items.*.quantity", "Quantity must be a number").exists().isInt(),
   body("items.*.price", "Price must be a Decimal").exists().isDecimal(),
   body("items.*.amount", "Amount must be a Decimal").exists().isDecimal(),
@@ -187,6 +189,10 @@ exports.Bulkcreate = [
               }
             }
           );
+          WishlistModel.findOneAndDelete(
+            { user: req.user._id, _id: item._id },
+            {}
+          ).then((data) => {});
         });
         return apiResponse.successResponse(res, "Checkout Added");
       }

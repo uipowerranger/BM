@@ -400,8 +400,7 @@ exports.VerifyToken = [
         eway
           .getAccessCode(req.body.AccessCode)
           .then(function (response) {
-            //if (response.get("Transactions[0].TransactionStatus")) {
-            if (true) {
+            if (response.get("Transactions[0].TransactionStatus")) {
               OrderModel.findById(
                 response.get("Transactions[0].InvoiceNumber"),
                 (err, data) => {

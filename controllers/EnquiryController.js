@@ -16,16 +16,19 @@ mongoose.set("useFindAndModify", false);
  * @returns {Object}
  */
 exports.create = [
-  auth,
   // Validate fields.
   body("email_id", "Email is required")
     .exists()
     .isEmail()
     .withMessage("Enter valid email"),
-  body("phone_number", "Phone number is required").exists().isString(),
+  body("phone_number", "Phone number is required and should be string")
+    .exists()
+    .isString(),
   body("first_name", "Firstname is required").exists().isString(),
   body("last_name", "Lastname is required").exists().isString(),
-  body("post_code", "Postcode is required").exists().isNumeric(),
+  body("post_code", "Postcode is required and should be number")
+    .exists()
+    .isNumeric(),
   // Process request after validation and sanitization.
   (req, res) => {
     try {
@@ -41,7 +44,6 @@ exports.create = [
       } else {
         const { _id, ...rest } = req.body;
         var order = new EnquiryModel({
-          user: req.user._id,
           ...rest,
         });
         // Save order.
@@ -72,7 +74,6 @@ exports.create = [
  */
 
 exports.EnquiryList = [
-  auth,
   function (req, res) {
     try {
       EnquiryModel.find().then((orders) => {
