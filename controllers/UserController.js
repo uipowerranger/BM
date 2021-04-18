@@ -391,7 +391,7 @@ exports.login = [
           } else {
             return apiResponse.unauthorizedResponse(
               res,
-              "Email or Password wrong."
+              "Email or Password incorrect."
             );
           }
         });
