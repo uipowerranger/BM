@@ -111,7 +111,7 @@ exports.register = [
             };
             return apiResponse.successResponseWithData(
               res,
-              "Registration Success.",
+              "Registration Success. Please check your mail",
               userData
             );
           });
@@ -369,7 +369,7 @@ exports.login = [
                           );
                           return apiResponse.successResponseWithData(
                             res,
-                            "Login Success.",
+                            "An Email has sent with OTP Successfully...",
                             userData
                           );
                         });
@@ -391,7 +391,7 @@ exports.login = [
           } else {
             return apiResponse.unauthorizedResponse(
               res,
-              "Email or Password wrong."
+              "Email or Password incorrect."
             );
           }
         });

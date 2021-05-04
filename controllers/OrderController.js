@@ -103,10 +103,10 @@ exports.create = [
             Customer: {
               FirstName: req.body.first_name,
               LastName: req.body.last_name,
-              Street1: req.body.mailing_address.address1,
-              Street2: req.body.mailing_address.address2,
-              City: req.body.mailing_address.city,
-              State: req.body.mailing_address.state,
+              // Street1: req.body.mailing_address.address1,
+              // Street2: req.body.mailing_address.address2,
+              // City: req.body.mailing_address.city,
+              // State: req.body.mailing_address.state,
               PostalCode: req.body.mailing_address.postcode,
               Country: "au",
               Email: req.body.email_id,
@@ -116,7 +116,7 @@ exports.create = [
             Payment: {
               TotalAmount: req.body.total_amount,
               InvoiceNumber: order._id,
-              InvoiceDescription: "Birlamart Purchase",
+              InvoiceDescription: "Birlamart Order Purchase",
               InvoiceReference: "",
               CurrencyCode: "AUD",
             },
